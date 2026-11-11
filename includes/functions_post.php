@@ -66,11 +66,23 @@ function unprepare_message($message)
 // 
 function prepare_post(&$mode, &$post_data, &$bbcode_on, &$html_on, &$smilies_on, &$error_msg, &$username, &$bbcode_uid, &$subject, &$message, &$poll_title, &$poll_options, &$poll_length) {
 	global $board_config, $userdata, $lang, $phpEx, $phpbb_root_path;
-
+	
 	// Comienzo SQL-04
 	foreach (array($username, $subject, $message, $poll_title) as $value) {
 		if (!is_string($value)) {
 			message_die(GENERAL_MESSAGE, 'Invalid posting data');
+		}
+	}
+
+	$post_text_limits = array(
+		'username'   => array($username, 25),
+		'subject'    => array($subject, 60),
+		'poll_title' => array($poll_title, 255)
+	);
+
+	foreach ($post_text_limits as $field => $rule) {
+		if (strlen($rule[0]) > $rule[1]) {
+			message_die(GENERAL_MESSAGE, 'El campo ' . $field . ' supera la longitud permitida.');
 		}
 	}
 
@@ -85,6 +97,10 @@ function prepare_post(&$mode, &$post_data, &$bbcode_on, &$html_on, &$smilies_on,
 	foreach ($poll_options as $option_text) {
 		if (!is_string($option_text)) {
 			message_die(GENERAL_MESSAGE, 'Invalid poll option');
+		}
+
+		if (strlen($option_text) > 255) {
+			message_die(GENERAL_MESSAGE, 'Una opción de encuesta supera la longitud permitida.');
 		}
 	}
 	// Fin SQL-04
@@ -154,7 +170,7 @@ function prepare_post(&$mode, &$post_data, &$bbcode_on, &$html_on, &$smilies_on,
 					$temp_option_text[intval($option_id)] = htmlspecialchars($option_text);
 				}
 			}
-			
+
 			$poll_options = $temp_option_text;
 
 			if (count($poll_options) < 2)

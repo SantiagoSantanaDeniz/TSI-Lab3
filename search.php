@@ -63,6 +63,11 @@ if ( isset($HTTP_POST_VARS['search_author']) || isset($HTTP_GET_VARS['search_aut
 	if (!is_string($search_author)) {
 		message_die(GENERAL_MESSAGE, 'Invalid search data');
 	}
+
+	if (strlen($search_author) > 256) {
+		message_die(GENERAL_MESSAGE, 'El término de búsqueda supera la longitud permitida.');
+	}
+	
 	$search_author = phpbb_clean_username($search_author);
 } else {
 	$search_author = '';

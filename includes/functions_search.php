@@ -440,6 +440,10 @@ function username_search($search_match)
 	$username_list = '';
 	if ( !empty($search_match) ) {
 		$username_search = str_replace('*', '%', phpbb_clean_username($search_match));
+		
+		if (strlen($search_match) > 256) {
+			message_die(GENERAL_MESSAGE, 'El término de búsqueda supera la longitud permitida.');
+		}
 
 		$sql_username_search = $db->sql_escape_string($username_search);
 
