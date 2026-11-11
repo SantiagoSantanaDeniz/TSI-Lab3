@@ -1,9 +1,39 @@
 Ruta:
-/etc/opt/remi/php56/php.ini
-/etc/httpd/conf/httpd.conf
-/var/www/OriginalPhpbb/.htaccess
+1. /etc/opt/remi/php56/php.ini
+2. /etc/httpd/conf/httpd.conf
+3. /var/www/OriginalPhpbb/.htaccess
+
+Cambios:
+1.
+expose_php = Off
+
+2.
+ServerSignature Off
+ServerTokens Prod
+
+<Directory "/var/www">
+    AllowOverride All
+    # Allow open access:
+    Require all granted
+</Directory>
+
+Alias /OriginalPhpbb /var/www/OriginalPhpbb
+
+<Directory "/var/www/OriginalPhpbb">
+    Options -Indexes
+    AllowOverride All
+    Require all granted
+</Directory>
+
+3.
+Options -Indexes
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header unset X-Powered-By
+</IfModule>
 
 Comandos:
-sudo chown apache:apache /var/www/OriginalPhpbb/.htaccess
-sudo systemctl restart httpd
-sudo systemctl restart php56-php-fpm
+1. sudo chown apache:apache /var/www/OriginalPhpbb/.htaccess
+2. sudo systemctl restart httpd
+3. sudo systemctl restart php56-php-fpm
