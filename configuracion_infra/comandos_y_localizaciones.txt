@@ -10,7 +10,7 @@ expose_php = Off
 2.
 ServerSignature Off
 ServerTokens Prod
-
+Header always set X-Frame-Options "SAMEORIGIN"
 Header always set X-Content-Type-Options "nosniff"
 Header always set Content-Security-Policy "default-src 'self' 'unsafe-inline' 'unsafe-eval' http: https: data:;"
 Header unset X-Powered-By
