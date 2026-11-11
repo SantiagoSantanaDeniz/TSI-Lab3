@@ -738,25 +738,22 @@ function message_die($msg_code, $msg_text = '', $msg_title = '', $err_line = '',
 	// Get SQL error if we are debugging. Do this as soon as possible to prevent 
 	// subsequent queries from overwriting the status of sql_error()
 	//
-	if ( DEBUG && ( $msg_code == GENERAL_ERROR || $msg_code == CRITICAL_ERROR ) )
-	{
+	if ( DEBUG && ( $msg_code == GENERAL_ERROR || $msg_code == CRITICAL_ERROR ) ) {
 		$sql_error = $db->sql_error();
+		$debug_encoding = !empty($lang['ENCODING']) ? $lang['ENCODING'] : 'ISO-8859-1';
 
 		$debug_text = '';
 
-		if ( $sql_error['message'] != '' )
-		{
-			$debug_text .= '<br /><br />SQL Error : ' . $sql_error['code'] . ' ' . $sql_error['message'];
+		if ( $sql_error['message'] != '' ) {
+			$debug_text .= '<br /><br />SQL Error : ' . (int) $sql_error['code'] . ' ' . htmlspecialchars($sql_error['message'], ENT_QUOTES, $debug_encoding);
 		}
 
-		if ( $sql_store != '' )
-		{
-			$debug_text .= "<br /><br />$sql_store";
+		if ( $sql_store != '' ) {
+			$debug_text .= '<br /><br />' . htmlspecialchars($sql_store, ENT_QUOTES, $debug_encoding);
 		}
 
-		if ( $err_line != '' && $err_file != '' )
-		{
-			$debug_text .= '<br /><br />Line : ' . $err_line . '<br />File : ' . basename($err_file);
+		if ( $err_line != '' && $err_file != '' ) {
+			$debug_text .= '<br /><br />Line : ' . (int) $err_line . '<br />File : ' . htmlspecialchars(basename($err_file), ENT_QUOTES, $debug_encoding);
 		}
 	}
 
