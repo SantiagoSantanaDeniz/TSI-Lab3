@@ -15,4 +15,9 @@ $table_prefix = 'phpbb_';
 
 define('PHPBB_INSTALLED', true);
 
+/* Inicio arreglo vulnerabilidad EXP-01, CWE-209 */
+@define('DEBUG', false);
+@define('DEBUG_EXTRA', false);
+/* Fin arreglo vulnerabilidad EXP-01, CWE-209 */
+
 ?>

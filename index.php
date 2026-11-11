@@ -55,7 +55,9 @@ if( $mark_read == 'forums' )
 {
 	if( $userdata['session_logged_in'] )
 	{
-		setcookie($board_config['cookie_name'] . '_f_all', time(), 0, $board_config['cookie_path'], $board_config['cookie_domain'], $board_config['cookie_secure']);
+		/* Inicio arreglo vulnerabilidad SES-04, ID: 18, CWE-1004 */
+		setcookie($board_config['cookie_name'] . '_f_all', time(), 0, $board_config['cookie_path'], $board_config['cookie_domain'], $board_config['cookie_secure'], true);
+		/* Fin arreglo vulnerabilidad SES-04, ID: 18, CWE-1004 */
 	}
 
 	$template->assign_vars(array(
