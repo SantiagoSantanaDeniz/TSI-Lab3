@@ -1,0 +1,3 @@
+sudo chown apache:apache /var/www/OriginalPhpbb/.htaccess
+sudo systemctl restart httpd
+sudo systemctl restart php56-php-fpm
