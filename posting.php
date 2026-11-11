@@ -691,7 +691,19 @@ if( $refresh || isset($HTTP_POST_VARS['del_poll_option']) || $error_msg != '' )
 		obtain_word_list($orig_word, $replacement_word);
 
 		$bbcode_uid = ( $bbcode_on ) ? make_bbcode_uid() : '';
-		$preview_message = stripslashes(prepare_message(addslashes(unprepare_message($message)), $html_on, $bbcode_on, $smilies_on, $bbcode_uid));
+
+		// Comienzo XSS-02
+	$preview_message = prepare_message(unprepare_message($message), $html_on, $bbcode_on, $smilies_on, $bbcode_uid);
+		$preview_html_allowed = !empty($board_config['allow_html']) && !empty($userdata['user_allowhtml']) && !empty($html_on);
+
+		if (!$preview_html_allowed) {
+			$preview_message = htmlspecialchars($preview_message, ENT_QUOTES, $lang['ENCODING'], false);
+		} else {
+			$allowed_elements = preg_split( '/\s*,\s*/', strtolower(trim($board_config['allow_html_tags'])), -1, PREG_SPLIT_NO_EMPTY);
+			$preview_message = phpbb_purify_html($preview_message, $allowed_elements);
+		}
+		// Fin XSS-02
+
 		$preview_subject = $subject;
 		$preview_username = $username;
 
@@ -745,6 +757,10 @@ if( $refresh || isset($HTTP_POST_VARS['del_poll_option']) || $error_msg != '' )
 		}
 
 		$preview_message = str_replace("\n", '<br />', $preview_message);
+
+		// Comienzo XSS-02
+		$preview_message = phpbb_purify_html($preview_message);
+		// Fin XSS-02
 
 		$template->set_filenames(array(
 			'preview' => 'posting_preview.tpl')
@@ -1022,7 +1038,7 @@ $template->assign_block_vars('switch_not_privmsg', array());
 $template->assign_vars(array(
 	'USERNAME' => $username,
 	'SUBJECT' => $subject,
-	'MESSAGE' => $message,
+	'MESSAGE' => htmlspecialchars($message, ENT_QUOTES, $lang['ENCODING'], false),
 	'HTML_STATUS' => $html_status,
 	'BBCODE_STATUS' => sprintf($bbcode_status, '<a href="' . append_sid("faq.$phpEx?mode=bbcode") . '" target="_phpbbcode">', '</a>'), 
 	'SMILIES_STATUS' => $smilies_status, 

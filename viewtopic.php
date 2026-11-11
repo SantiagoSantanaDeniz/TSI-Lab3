@@ -1051,18 +1051,24 @@ for($i = 0; $i < $total_posts; $i++)
 	// If the board has HTML off but the post has HTML
 	// on then we process it, else leave it alone
 	//
-	if ( !$board_config['allow_html'] || !$userdata['user_allowhtml'])
-	{
-		if ( $user_sig != '' )
-		{
+
+
+	if (!$board_config['allow_html'] || !$userdata['user_allowhtml']) {
+		if ($user_sig != '') {
 			$user_sig = preg_replace('#(<)([\/]?.*?)(>)#is', "&lt;\\2&gt;", $user_sig);
 		}
-
-		if ( $postrow[$i]['enable_html'] )
-		{
-			$message = preg_replace('#(<)([\/]?.*?)(>)#is', "&lt;\\2&gt;", $message);
-		}
 	}
+
+	// Comienzo XSS-02
+	$message_html_allowed = !empty($board_config['allow_html']) && !empty($userdata['user_allowhtml']) && !empty($postrow[$i]['enable_html']);
+
+	if (!$message_html_allowed) {
+		$message = htmlspecialchars($message, ENT_QUOTES, $lang['ENCODING'], false);
+	} else {
+		$allowed_elements = preg_split('/\s*,\s*/', strtolower(trim($board_config['allow_html_tags'])), -1, PREG_SPLIT_NO_EMPTY);
+		$message = phpbb_purify_html($message, $allowed_elements);
+	}
+	// Fin XSS-02
 
 	//
 	// Parse message and/or sig for BBCode if reqd
@@ -1154,6 +1160,9 @@ for($i = 0; $i < $total_posts; $i++)
 	//
 	$row_color = ( !($i % 2) ) ? $theme['td_color1'] : $theme['td_color2'];
 	$row_class = ( !($i % 2) ) ? $theme['td_class1'] : $theme['td_class2'];
+
+	// XSS-02
+	$message = phpbb_purify_html($message);
 
 	$template->assign_block_vars('postrow', array(
 		'ROW_COLOR' => '#' . $row_color,

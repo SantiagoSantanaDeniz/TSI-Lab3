@@ -67,7 +67,7 @@ if ( isset($HTTP_POST_VARS['search_author']) || isset($HTTP_GET_VARS['search_aut
 	if (strlen($search_author) > 256) {
 		message_die(GENERAL_MESSAGE, 'El término de búsqueda supera la longitud permitida.');
 	}
-	
+
 	$search_author = phpbb_clean_username($search_author);
 } else {
 	$search_author = '';
@@ -898,15 +898,18 @@ else if ( $search_keywords != '' || $search_author != '' || $search_id )
 						$message = preg_replace('/\[url\]|\[\/url\]/si', '', $message);
 						$message = ( strlen($message) > $return_chars ) ? substr($message, 0, $return_chars) . ' ...' : $message;
 					}
-					else
-					{
-						if ( !$board_config['allow_html'] )
-						{
-							if ( $postrow[$i]['enable_html'] )
-							{
-								$message = preg_replace('#(<)([\/]?.*?)(>)#is', '&lt;\\2&gt;', $message);
-							}
+					else {
+						// Comienzo XSS-02
+						$message_html_allowed = !empty($board_config['allow_html']) && !empty($userdata['user_allowhtml']) && !empty($searchset[$i]['enable_html']);
+
+						if (!$message_html_allowed) {
+							$message = htmlspecialchars($message, ENT_QUOTES, $lang['ENCODING'], false);
+						} else {
+							$allowed_elements = preg_split('/\s*,\s*/', strtolower(trim($board_config['allow_html_tags'])), -1, PREG_SPLIT_NO_EMPTY);
+
+							$message = phpbb_purify_html($message, $allowed_elements);
 						}
+						// Fin XSS-02
 
 						if ( $bbcode_uid != '' )
 						{
@@ -1043,7 +1046,11 @@ else if ( $search_keywords != '' || $search_author != '' || $search_id )
 					$mini_post_img = $images['icon_minipost'];
 					$mini_post_alt = $lang['Post'];
 				}
-
+				
+				// Comienzo XSS-02
+				$message = phpbb_purify_html($message);
+				// Fin XSS-02
+				
 				$template->assign_block_vars("searchresults", array( 
 					'TOPIC_TITLE' => $topic_title,
 					'FORUM_NAME' => $searchset[$i]['forum_name'],
