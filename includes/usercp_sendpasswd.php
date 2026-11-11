@@ -27,21 +27,41 @@ if ( !defined('IN_PHPBB') )
 	exit;
 }
 
-if ( isset($HTTP_POST_VARS['submit']) )
-{
-	$username = ( !empty($HTTP_POST_VARS['username']) ) ? phpbb_clean_username($HTTP_POST_VARS['username']) : '';
-	$email = ( !empty($HTTP_POST_VARS['email']) ) ? trim(strip_tags(htmlspecialchars($HTTP_POST_VARS['email']))) : '';
+if ( isset($HTTP_POST_VARS['submit']) ) {
+	// Comienzo SQL-06.
+	$username_input = isset($HTTP_POST_VARS['username']) ? $HTTP_POST_VARS['username'] : '';
 
-	$sql = "SELECT user_id, username, user_email, user_active, user_lang 
-		FROM " . USERS_TABLE . " 
-		WHERE user_email = '" . str_replace("\'", "''", $email) . "' 
-			AND username = '" . str_replace("\'", "''", $username) . "'";
-	if ( $result = $db->sql_query($sql) )
-	{
-		if ( $row = $db->sql_fetchrow($result) )
-		{
-			if ( !$row['user_active'] )
-			{
+	$email_input = isset($HTTP_POST_VARS['email']) ? $HTTP_POST_VARS['email'] : '';
+
+	if (!is_string($username_input) || !is_string($email_input)) {
+		message_die(GENERAL_MESSAGE, $lang['No_email_match']);
+	}
+
+	if (strlen($username_input) > 40 || strlen($email_input) > 255) {
+		message_die(GENERAL_MESSAGE, $lang['No_email_match']);
+	}
+
+	$username = phpbb_clean_username($username_input);
+	$email_input = trim($email_input);
+
+	if ($username === '' || filter_var($email_input, FILTER_VALIDATE_EMAIL) === false) {
+		message_die(GENERAL_MESSAGE, $lang['No_email_match']);
+	}
+
+	$email = htmlspecialchars($email_input);
+
+	$sql_username = $db->sql_escape_string($username);
+	$sql_email = $db->sql_escape_string($email);
+
+	$sql = "SELECT user_id, username, user_email, user_active, user_lang
+		FROM " . USERS_TABLE . "
+		WHERE user_email = '" . $sql_email . "'
+			AND username = '" . $sql_username . "'";		
+	// Fin SQL-06
+
+	if ( $result = $db->sql_query($sql) ) {
+		if ( $row = $db->sql_fetchrow($result) ) {
+			if ( !$row['user_active'] ) {
 				message_die(GENERAL_MESSAGE, $lang['No_send_account_inactive']);
 			}
 
@@ -54,12 +74,18 @@ if ( isset($HTTP_POST_VARS['submit']) )
 			$user_actkey = substr($user_actkey, 0, $key_len);
 			$user_password = gen_rand_string(false);
 			
-			$sql = "UPDATE " . USERS_TABLE . " 
-				SET user_newpasswd = '" . md5($user_password) . "', user_actkey = '$user_actkey'  
-				WHERE user_id = " . $row['user_id'];
-			if ( !$db->sql_query($sql) )
-			{
-				message_die(GENERAL_ERROR, 'Could not update new password information', '', __LINE__, __FILE__, $sql);
+			$sql_password_hash = $db->sql_escape_string(md5($user_password));
+
+			$sql_activation_key = $db->sql_escape_string($user_actkey);
+
+			$sql = "UPDATE " . USERS_TABLE . "
+				SET user_newpasswd = '" . $sql_password_hash . "',
+					user_actkey = '" . $sql_activation_key . "'
+				WHERE user_id = " . intval($row['user_id']);
+
+			if (!$db->sql_query($sql)) {
+				error_log('Password recovery update failed');
+				message_die(GENERAL_ERROR, 'No se pudo procesar la recuperación de contraseña.');
 			}
 
 			include($phpbb_root_path . 'includes/emailer.'.$phpEx);
@@ -83,26 +109,19 @@ if ( isset($HTTP_POST_VARS['submit']) )
 			$emailer->send();
 			$emailer->reset();
 
-			$template->assign_vars(array(
-				'META' => '<meta http-equiv="refresh" content="15;url=' . append_sid("index.$phpEx") . '">')
-			);
+			$template->assign_vars(array('META' => '<meta http-equiv="refresh" content="15;url=' . append_sid("index.$phpEx") . '">'));
 
 			$message = $lang['Password_updated'] . '<br /><br />' . sprintf($lang['Click_return_index'],  '<a href="' . append_sid("index.$phpEx") . '">', '</a>');
 
 			message_die(GENERAL_MESSAGE, $message);
-		}
-		else
-		{
+		} else {
 			message_die(GENERAL_MESSAGE, $lang['No_email_match']);
 		}
+	} else {
+		error_log('Password recovery lookup failed');
+		message_die(GENERAL_ERROR, 'No se pudo procesar la recuperación de contraseña.');
 	}
-	else
-	{
-		message_die(GENERAL_ERROR, 'Could not obtain user information for sendpassword', '', __LINE__, __FILE__, $sql);
-	}
-}
-else
-{
+} else {
 	$username = '';
 	$email = '';
 }

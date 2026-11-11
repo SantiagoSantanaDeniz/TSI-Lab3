@@ -174,30 +174,42 @@ function dss_rand()
 //
 // Get Userdata, $user can be username or user_id. If force_str is true, the username will be forced.
 //
-function get_userdata($user, $force_str = false)
-{
-	global $db;
+function get_userdata($user, $force_str = false) {
+    global $db;
 
-	if (!is_numeric($user) || $force_str)
-	{
-		$user = phpbb_clean_username($user);
-	}
-	else
-	{
-		$user = intval($user);
-	}
+	// Comienzo SQL-07 //
+    if (!is_string($user) && !is_int($user)) {
+        return false;
+    }
 
-	$sql = "SELECT *
-		FROM " . USERS_TABLE . " 
-		WHERE ";
-	$sql .= ( ( is_integer($user) ) ? "user_id = $user" : "username = '" .  str_replace("\'", "''", $user) . "'" ) . " AND user_id <> " . ANONYMOUS;
-	if ( !($result = $db->sql_query($sql)) )
-	{
-		message_die(GENERAL_ERROR, 'Tried obtaining data for a non-existent user', '', __LINE__, __FILE__, $sql);
-	}
+    if (!is_numeric($user) || $force_str) {
+        $username = phpbb_clean_username((string) $user);
+        $sql_username = $db->sql_escape_string($username);
 
-	return ( $row = $db->sql_fetchrow($result) ) ? $row : false;
+        $where_sql = "username = '" . $sql_username . "'";
+    } else {
+        $user_id = intval($user);
+        $where_sql = 'user_id = ' . $user_id;
+    }
+
+    $sql = "SELECT *
+        FROM " . USERS_TABLE . "
+        WHERE " . $where_sql . "
+            AND user_id <> " . intval(ANONYMOUS);
+
+    $result = $db->sql_query($sql);
+
+    if (!$result) {
+        error_log('User lookup failed');
+        message_die(GENERAL_ERROR, 'No se pudo obtener la información del usuario.');
+    }
+
+    $row = $db->sql_fetchrow($result);
+    $db->sql_freeresult($result);
+
+    return $row ? $row : false;
 }
+// Fin SQL-07 //
 
 function make_jumpbox($action, $match_forum_id = 0)
 {
