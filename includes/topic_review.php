@@ -221,8 +221,9 @@ function topic_review($topic_id, $is_inline_review)
 
 	$template->assign_vars(array(
 		'L_AUTHOR' => $lang['Author'],
+		'L_MESSAGE' => $lang['Message'],
 		'L_POSTED' => $lang['Posted'],
-		'L_POST_SUBJECT' => $lang['Post_subject'], 
+		'L_POST_SUBJECT' => $lang['Post_subject'],
 		'L_TOPIC_REVIEW' => $lang['Topic_review'])
 	);
 
