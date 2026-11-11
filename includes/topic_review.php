@@ -155,10 +155,15 @@ function topic_review($topic_id, $is_inline_review)
 			// If the board has HTML off but the post has HTML
 			// on then we process it, else leave it alone
 			//
-			if ( !$board_config['allow_html'] && $row['enable_html'] )
-			{
-				$message = preg_replace('#(<)([\/]?.*?)(>)#is', '&lt;\2&gt;', $message);
+			// Comienzo XSS-02
+			$message_html_allowed = !empty($board_config['allow_html']) && !empty($userdata['user_allowhtml']) && !empty($row['enable_html']);
+			if (!$message_html_allowed) {
+				$message = htmlspecialchars($message, ENT_QUOTES, $lang['ENCODING'], false);
+			} else {
+				$allowed_elements = preg_split('/\s*,\s*/', strtolower(trim($board_config['allow_html_tags'])), -1, PREG_SPLIT_NO_EMPTY);
+				$message = phpbb_purify_html($message, $allowed_elements);
 			}
+			// Fin XSS-02
 
 			if ( $bbcode_uid != "" )
 			{
@@ -179,6 +184,10 @@ function topic_review($topic_id, $is_inline_review)
 			}
 
 			$message = str_replace("\n", '<br />', $message);
+
+			// Comienzo XSS-02
+			$message = phpbb_purify_html($message);
+			// Fin XSS-02
 
 			//
 			// Again this will be handled by the templating
@@ -212,14 +221,12 @@ function topic_review($topic_id, $is_inline_review)
 
 	$template->assign_vars(array(
 		'L_AUTHOR' => $lang['Author'],
-		'L_MESSAGE' => $lang['Message'],
 		'L_POSTED' => $lang['Posted'],
 		'L_POST_SUBJECT' => $lang['Post_subject'], 
 		'L_TOPIC_REVIEW' => $lang['Topic_review'])
 	);
 
-	if ( !$is_inline_review )
-	{
+	if ( !$is_inline_review ) {
 		$template->pparse('reviewbody');
 		include($phpbb_root_path . 'includes/page_tail.'.$phpEx);
 	}

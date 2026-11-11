@@ -157,7 +157,16 @@ function bbencode_second_pass($text, $uid)
 
 	// New one liner to deal with opening quotes with usernames...
 	// replaces the two line version that I had here before..
-	$text = preg_replace("/\[quote:$uid=\"(.*?)\"\]/si", $bbcode_tpl['quote_username_open'], $text);
+
+	$text = preg_replace_callback('/\[quote:' . preg_quote($uid, '/') . '=(?:"|&quot;)(.*?)(?:"|&quot;)\]/si',
+		function ($matches) use ($bbcode_tpl) {
+			global $lang;
+			$safe_username = htmlspecialchars($matches[1], ENT_QUOTES, $lang['ENCODING'], false);
+
+			return str_replace('\\1', $safe_username, $bbcode_tpl['quote_username_open']);
+		},
+		$text
+	);
 
 	// [list] and [list=x] for (un)ordered lists.
 	// unordered lists
@@ -252,8 +261,8 @@ function bbencode_first_pass($text, $uid)
 
 	// [QUOTE] and [/QUOTE] for posting replies with quote, or just for quoting stuff.
 	$text = bbencode_first_pass_pda($text, $uid, '[quote]', '[/quote]', '', false, '');
-	$text = bbencode_first_pass_pda($text, $uid, '/\[quote=\\\\&quot;(.*?)\\\\&quot;\]/is', '[/quote]', '', false, '', "[quote:$uid=\\\"\\1\\\"]");
-
+	$text = bbencode_first_pass_pda($text, $uid, '/\[quote=(?:"|&quot;)(.*?)(?:"|&quot;)\]/is', '[/quote]', '', false, '', '[quote:' . $uid . '=&quot;\\1&quot;]');
+	
 	// [list] and [list=x] for (un)ordered lists.
 	$open_tag = array();
 	$open_tag[0] = "[list]";

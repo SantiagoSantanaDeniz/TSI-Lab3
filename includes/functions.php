@@ -208,8 +208,9 @@ function get_userdata($user, $force_str = false) {
     $db->sql_freeresult($result);
 
     return $row ? $row : false;
+	// Fin SQL-07 //
 }
-// Fin SQL-07 //
+
 
 function make_jumpbox($action, $match_forum_id = 0)
 {
@@ -953,6 +954,32 @@ function redirect($url)
 	// Behave as per HTTP/1.1 spec for others
 	header('Location: ' . $server_protocol . $server_name . $server_port . $script_name . $url);
 	exit;
+}
+function phpbb_purify_html($html, $allowed_elements = null) {
+    global $phpbb_root_path, $lang;
+
+    require_once($phpbb_root_path. 'includes/htmlpurifier-4.19.1/library/HTMLPurifier.auto.php');
+
+    static $purifiers = array();
+
+    $encoding = $lang['ENCODING'];
+    $cache_key = serialize(array($encoding, $allowed_elements));
+
+    if (!isset($purifiers[$cache_key])) {
+        $config = HTMLPurifier_Config::createDefault();
+
+        $config->set('Core.Encoding', $encoding);
+        $config->set('Cache.DefinitionImpl', null);
+
+        if ($allowed_elements !== null) {
+            $config->set('HTML.AllowedElements', $allowed_elements);
+        }
+
+        $purifiers[$cache_key] = new HTMLPurifier($config);
+    }
+
+	$html = preg_replace('#(<(?:ul|ol)\b[^>]*>)(?:\s|<br\s*/?>)+(?=<li\b)#i', '$1', $html);
+    return $purifiers[$cache_key]->purify($html);
 }
 
 ?>
