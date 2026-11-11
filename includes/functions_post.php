@@ -64,9 +64,30 @@ function unprepare_message($message)
 //
 // Prepare a message for posting
 // 
-function prepare_post(&$mode, &$post_data, &$bbcode_on, &$html_on, &$smilies_on, &$error_msg, &$username, &$bbcode_uid, &$subject, &$message, &$poll_title, &$poll_options, &$poll_length)
-{
+function prepare_post(&$mode, &$post_data, &$bbcode_on, &$html_on, &$smilies_on, &$error_msg, &$username, &$bbcode_uid, &$subject, &$message, &$poll_title, &$poll_options, &$poll_length) {
 	global $board_config, $userdata, $lang, $phpEx, $phpbb_root_path;
+
+	// Comienzo SQL-04
+	foreach (array($username, $subject, $message, $poll_title) as $value) {
+		if (!is_string($value)) {
+			message_die(GENERAL_MESSAGE, 'Invalid posting data');
+		}
+	}
+
+	if ($poll_options === '') {
+		$poll_options = array();
+	}
+
+	if (!is_array($poll_options)) {
+		message_die(GENERAL_MESSAGE, 'Invalid poll data');
+	}
+
+	foreach ($poll_options as $option_text) {
+		if (!is_string($option_text)) {
+			message_die(GENERAL_MESSAGE, 'Invalid poll option');
+		}
+	}
+	// Fin SQL-04
 
 	// Check username
 	if (!empty($username))
@@ -156,10 +177,19 @@ function prepare_post(&$mode, &$post_data, &$bbcode_on, &$html_on, &$smilies_on,
 //
 // Post a new topic/reply/poll or edit existing post/poll
 //
-function submit_post($mode, &$post_data, &$message, &$meta, &$forum_id, &$topic_id, &$post_id, &$poll_id, &$topic_type, &$bbcode_on, &$html_on, &$smilies_on, &$attach_sig, &$bbcode_uid, $post_username, $post_subject, $post_message, $poll_title, &$poll_options, &$poll_length)
-{
+function submit_post($mode, &$post_data, &$message, &$meta, &$forum_id, &$topic_id, &$post_id, &$poll_id, &$topic_type, &$bbcode_on, &$html_on, &$smilies_on, &$attach_sig, &$bbcode_uid, $post_username, $post_subject, $post_message, $poll_title, &$poll_options, &$poll_length) {
 	global $board_config, $lang, $db, $phpbb_root_path, $phpEx;
 	global $userdata, $user_ip;
+
+	// Comienzo SQL-04
+	$search_post_message = $post_message;
+	$search_post_subject = $post_subject;
+
+	$post_username = $db->sql_escape_string($post_username);
+	$post_subject = $db->sql_escape_string($post_subject);
+	$post_message = $db->sql_escape_string($post_message);
+	$poll_title = $db->sql_escape_string($poll_title);
+	// Fin SQL-04
 
 	include($phpbb_root_path . 'includes/functions_search.'.$phpEx);
 
@@ -224,8 +254,9 @@ function submit_post($mode, &$post_data, &$message, &$meta, &$forum_id, &$topic_
 	{
 		message_die(GENERAL_ERROR, 'Error in posting', '', __LINE__, __FILE__, $sql);
 	}
-
-	add_search_words('single', $post_id, stripslashes($post_message), stripslashes($post_subject));
+	// Comienzo SQL-04
+	add_search_words('single', $post_id, $search_post_message, $search_post_subject);
+	// Fin SQL-04
 
 	//
 	// Add poll
@@ -269,16 +300,15 @@ function submit_post($mode, &$post_data, &$message, &$meta, &$forum_id, &$topic_
 		@reset($poll_options);
 
 		$poll_option_id = 1;
-		while (list($option_id, $option_text) = each($poll_options))
-		{
-			if (!empty($option_text))
-			{
-				$option_text = str_replace("\'", "''", htmlspecialchars($option_text));
+		while (list($option_id, $option_text) = each($poll_options)) {
+			if (!empty($option_text)) {
+				// Comienzo SQL-04
+				$option_text = $db->sql_escape_string(htmlspecialchars($option_text));
+				// Fin SQL-04
 				$poll_result = ($mode == "editpost" && isset($old_poll_result[$option_id])) ? $old_poll_result[$option_id] : 0;
 
 				$sql = ($mode != "editpost" || !isset($old_poll_result[$option_id])) ? "INSERT INTO " . VOTE_RESULTS_TABLE . " (vote_id, vote_option_id, vote_option_text, vote_result) VALUES ($poll_id, $poll_option_id, '$option_text', $poll_result)" : "UPDATE " . VOTE_RESULTS_TABLE . " SET vote_option_text = '$option_text', vote_result = $poll_result WHERE vote_option_id = $option_id AND vote_id = $poll_id";
-				if (!$db->sql_query($sql))
-				{
+				if (!$db->sql_query($sql)) {
 					message_die(GENERAL_ERROR, 'Error in posting', '', __LINE__, __FILE__, $sql);
 				}
 				$poll_option_id++;

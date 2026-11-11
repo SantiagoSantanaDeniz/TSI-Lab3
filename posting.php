@@ -568,11 +568,32 @@ else if ( $submit || $confirm )
 
 			prepare_post($mode, $post_data, $bbcode_on, $html_on, $smilies_on, $error_msg, $username, $bbcode_uid, $subject, $message, $poll_title, $poll_options, $poll_length);
 
-			if ( $error_msg == '' )
-			{
+			if ( $error_msg == '' ) {
 				$topic_type = ( $topic_type != $post_data['topic_type'] && !$is_auth['auth_sticky'] && !$is_auth['auth_announce'] ) ? $post_data['topic_type'] : $topic_type;
-
-				submit_post($mode, $post_data, $return_message, $return_meta, $forum_id, $topic_id, $post_id, $poll_id, $topic_type, $bbcode_on, $html_on, $smilies_on, $attach_sig, $bbcode_uid, str_replace("\'", "''", $username), str_replace("\'", "''", $subject), str_replace("\'", "''", $message), str_replace("\'", "''", $poll_title), $poll_options, $poll_length);
+				// Comienzo SQL-04.
+				submit_post(
+					$mode,
+					$post_data,
+					$return_message,
+					$return_meta,
+					$forum_id,
+					$topic_id,
+					$post_id,
+					$poll_id,
+					$topic_type,
+					$bbcode_on,
+					$html_on,
+					$smilies_on,
+					$attach_sig,
+					$bbcode_uid,
+					$username,
+					$subject,
+					$message,
+					$poll_title,
+					$poll_options,
+					$poll_length
+				);
+				// Fin SQL-04
 			}
 			break;
 
