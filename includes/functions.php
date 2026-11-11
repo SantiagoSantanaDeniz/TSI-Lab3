@@ -677,28 +677,23 @@ function phpbb_preg_quote($str, $delimiter)
 // calling script, note that the vars are passed as references this just makes it easier
 // to return both sets of arrays
 //
-function obtain_word_list(&$orig_word, &$replacement_word)
-{
-	global $db;
+function obtain_word_list(&$orig_word, &$replacement_word) {
+	global $db, $lang;
 
 	//
 	// Define censored word matches
 	//
 	$sql = "SELECT word, replacement
 		FROM  " . WORDS_TABLE;
-	if( !($result = $db->sql_query($sql)) )
-	{
+	if( !($result = $db->sql_query($sql)) ) {
 		message_die(GENERAL_ERROR, 'Could not get censored words from database', '', __LINE__, __FILE__, $sql);
 	}
 
-	if ( $row = $db->sql_fetchrow($result) )
-	{
-		do 
-		{
+	if ( $row = $db->sql_fetchrow($result) ) {
+		do {
 			$orig_word[] = '#\b(' . str_replace('\*', '\w*?', preg_quote($row['word'], '#')) . ')\b#i';
-			$replacement_word[] = $row['replacement'];
-		}
-		while ( $row = $db->sql_fetchrow($result) );
+			$replacement_word[] = htmlspecialchars($row['replacement'], ENT_QUOTES, $lang['ENCODING']);
+		} while ( $row = $db->sql_fetchrow($result) );
 	}
 
 	return true;
