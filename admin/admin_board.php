@@ -28,6 +28,249 @@ require($phpbb_root_path . 'extension.inc');
 require('./pagestart.' . $phpEx);
 include($phpbb_root_path . 'includes/functions_selects.'.$phpEx);
 
+// Comienzo SQL-05 //
+if (isset($HTTP_POST_VARS['submit'])) {
+    foreach ($HTTP_POST_VARS as $value) {
+        if (!is_string($value)) {
+            message_die(GENERAL_MESSAGE, 'Valor de configuración inválido.');
+        }
+    }
+
+    $integer_rules = array(
+        'server_port'          => array(1, 65535),
+        'max_autologin_time'    => array(0, PHP_INT_MAX),
+        'flood_interval'        => array(0, PHP_INT_MAX),
+        'search_flood_interval' => array(0, PHP_INT_MAX),
+        'max_login_attempts'    => array(0, PHP_INT_MAX),
+        'login_reset_time'      => array(0, PHP_INT_MAX),
+        'topics_per_page'       => array(1, PHP_INT_MAX),
+        'posts_per_page'        => array(1, PHP_INT_MAX),
+        'hot_threshold'         => array(0, PHP_INT_MAX),
+        'default_style'         => array(1, PHP_INT_MAX),
+        'session_length'        => array(1, PHP_INT_MAX),
+        'max_inbox_privmsgs'    => array(0, PHP_INT_MAX),
+        'max_sentbox_privmsgs'  => array(0, PHP_INT_MAX),
+        'max_savebox_privmsgs'  => array(0, PHP_INT_MAX),
+        'max_poll_options'      => array(2, PHP_INT_MAX),
+        'max_sig_chars'         => array(0, PHP_INT_MAX),
+        'avatar_filesize'       => array(0, PHP_INT_MAX),
+        'avatar_max_height'     => array(0, PHP_INT_MAX),
+        'avatar_max_width'      => array(0, PHP_INT_MAX)
+    );
+
+    foreach ($integer_rules as $field => $range) {
+        if (!isset($HTTP_POST_VARS[$field])) {
+            continue;
+        }
+
+        $value = trim($HTTP_POST_VARS[$field]);
+
+        if (!preg_match('/\A[0-9]+\z/', $value)){
+            message_die(GENERAL_MESSAGE, 'El campo ' . $field . ' debe ser un entero válido.');
+        }
+
+        $value = ltrim($value, '0');
+        $value = ($value === '') ? '0' : $value;
+
+        $number = filter_var( $value, FILTER_VALIDATE_INT, array('options' => array('min_range' => $range[0], 'max_range' => $range[1])));
+
+        if ($number === false){
+            message_die(GENERAL_MESSAGE, 'El campo ' . $field . ' está fuera del rango permitido.');
+        }
+
+        $HTTP_POST_VARS[$field] = (string) $number;
+    }
+
+    $boolean_fields = array(
+        'board_disable',
+        'enable_confirm',
+        'allow_autologin',
+        'board_email_form',
+        'override_user_style',
+        'gzip_compress',
+        'prune_enable',
+        'cookie_secure',
+        'privmsg_disable',
+        'allow_html',
+        'allow_bbcode',
+        'allow_smilies',
+        'allow_sig',
+        'allow_namechange',
+        'allow_avatar_local',
+        'allow_avatar_remote',
+        'allow_avatar_upload',
+        'smtp_delivery'
+    );
+
+    foreach ($boolean_fields as $field) {
+        if (isset($HTTP_POST_VARS[$field]) && !in_array($HTTP_POST_VARS[$field], array('0', '1'), true)) {
+            message_die(GENERAL_MESSAGE, 'El campo ' . $field . ' solo admite 0 o 1.');
+        }
+    }
+
+    $activation_values = array((string) USER_ACTIVATION_NONE, (string) USER_ACTIVATION_SELF, (string) USER_ACTIVATION_ADMIN);
+
+    if (isset($HTTP_POST_VARS['require_activation']) && !in_array($HTTP_POST_VARS['require_activation'], $activation_values, true)) {
+        message_die(GENERAL_MESSAGE, 'Opción de activación inválida.');
+    }
+
+    if (isset($HTTP_POST_VARS['board_timezone'])) {
+        $valid_timezone = false;
+
+        foreach ($lang['tz'] as $offset => $label) {
+            if ((string) $offset === $HTTP_POST_VARS['board_timezone']) {
+                $valid_timezone = true;
+                break;
+            }
+        }
+
+        if (!$valid_timezone) {
+            message_die(GENERAL_MESSAGE, 'Zona horaria inválida.');
+        }
+    }
+
+	if (isset($HTTP_POST_VARS['default_style'])) {
+		$style_id = intval($HTTP_POST_VARS['default_style']);
+
+		$sql = "SELECT themes_id
+			FROM " . THEMES_TABLE . "
+			WHERE themes_id = " . $style_id;
+
+		$style_result = $db->sql_query($sql);
+
+		if (!$style_result) {
+			error_log('Configuration style validation failed');
+			message_die(GENERAL_ERROR, 'No se pudo validar el estilo.');
+		}
+
+		$style_exists = $db->sql_fetchrow($style_result);
+		$db->sql_freeresult($style_result);
+
+		if (!$style_exists) {
+			message_die(GENERAL_MESSAGE, 'El estilo seleccionado no existe.');
+		}
+	}
+
+	if (isset($HTTP_POST_VARS['default_lang'])) {
+		$language = $HTTP_POST_VARS['default_lang'];
+
+		if (!preg_match('/\A[a-zA-Z0-9_-]+\z/', $language)) {
+			message_die(GENERAL_MESSAGE, 'Idioma inválido.');
+		}
+
+		$language_path = $phpbb_root_path. 'language/lang_' . $language;
+
+		if (!is_dir($language_path) || is_link($language_path) || !is_file($language_path . '/lang_main.' . $phpEx)) {
+			message_die(GENERAL_MESSAGE, 'El idioma seleccionado no está instalado.');
+		}
+	}
+
+	if (isset($HTTP_POST_VARS['board_email'])) {
+		$email = trim($HTTP_POST_VARS['board_email']);
+
+		if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+			message_die(GENERAL_MESSAGE, 'El correo del administrador es inválido.');
+		}
+
+		$HTTP_POST_VARS['board_email'] = $email;
+	}
+
+	if (isset($HTTP_POST_VARS['cookie_name'])) {
+		$cookie_name = $HTTP_POST_VARS['cookie_name'];
+
+		if (!preg_match('/\A[a-zA-Z0-9_-]{1,16}\z/', $cookie_name)) {
+			message_die(GENERAL_MESSAGE, 'El nombre de cookie debe tener de 1 a 16 '. 'caracteres: letras, números, guion o guion bajo.');
+		}
+	}
+
+	foreach (array('cookie_path', 'script_path') as $field) {
+		if (!isset($HTTP_POST_VARS[$field])) {
+			continue;
+		}
+
+		$path = $HTTP_POST_VARS[$field];
+
+		if ($field === 'script_path' && $path === '') {
+			continue;
+		}
+
+		if ($path === '' || substr($path, 0, 1) !== '/' || substr($path, 0, 2) === '//' || preg_match('/[\x00-\x20\x7F"<>;?#\\\\]/', $path) || preg_match('#(?:^|/)\.\.(?:/|$)#', $path)) {
+			message_die(GENERAL_MESSAGE, 'El campo ' . $field . ' debe ser una ruta URL válida.');
+		}
+	}	
+
+	$directory_rules = array('smilies_path' => 'allow_smilies', 'avatar_path' => 'allow_avatar_upload', 'avatar_gallery_path' => 'allow_avatar_local');
+
+	$app_directory = realpath($phpbb_root_path);
+
+	if ($app_directory === false) {
+		message_die(GENERAL_ERROR, 'No se pudo validar el directorio de la aplicación.');
+	}
+
+	$app_directory = rtrim(str_replace('\\', '/', $app_directory), '/') . '/';
+
+	foreach ($directory_rules as $field => $enabled_field) {
+		if (!isset($HTTP_POST_VARS[$field])) {
+			continue;
+		}
+
+		$path = trim($HTTP_POST_VARS[$field]);
+
+		$enabled = isset($HTTP_POST_VARS[$enabled_field]) ? $HTTP_POST_VARS[$enabled_field] === '1' : !empty($board_config[$enabled_field]);
+
+		if ($path === '' && !$enabled) {
+			$HTTP_POST_VARS[$field] = '';
+			continue;
+		}
+
+		if ($path === '' || !preg_match('/\A[a-zA-Z0-9_.\/-]+\z/', $path) || substr($path, 0, 1) === '/' || preg_match('#(?:^|/)\.\.(?:/|$)#', $path)) {
+			message_die(GENERAL_MESSAGE, 'Ruta de directorio inválida en ' . $field . '.');
+		}
+
+		$resolved = realpath($phpbb_root_path . $path);
+
+		if ($resolved === false || !is_dir($resolved)) {
+			message_die(GENERAL_MESSAGE, 'El directorio de ' . $field . ' no existe.');
+		}
+
+		$resolved = rtrim(str_replace('\\', '/', $resolved), '/') . '/';
+
+		if (strpos($resolved, $app_directory) !== 0) {
+			message_die(GENERAL_MESSAGE, 'El directorio debe permanecer dentro de la aplicación.');
+		}
+
+		if ($field === 'avatar_path' && $enabled && !is_writable($resolved)) {
+			message_die(GENERAL_MESSAGE, 'El directorio de avatares no permite escritura.');
+		}
+		$HTTP_POST_VARS[$field] = $path;
+	}	
+	$text_limits = array(
+		'server_name'         => 255,
+		'script_path'         => 255,
+		'sitename'            => 100,
+		'site_desc'           => 255,
+		'cookie_domain'       => 255,
+		'cookie_name'         => 16,
+		'cookie_path'         => 255,
+		'allow_html_tags'     => 255,
+		'smilies_path'        => 255,
+		'avatar_path'         => 255,
+		'avatar_gallery_path'=> 255,
+		'coppa_fax'           => 100,
+		'board_email'         => 100,
+		'smtp_host'           => 50,
+		'smtp_username'       => 255,
+		'smtp_password'       => 255
+	);
+
+	foreach ($text_limits as $field => $maximum) {
+		if (isset($HTTP_POST_VARS[$field]) && strlen($HTTP_POST_VARS[$field]) > $maximum) {
+			message_die(GENERAL_MESSAGE, 'El campo ' . $field . ' supera la longitud permitida.');
+		}
+	}
+}
+// Fin SQL-05 //
+
 //
 // Pull all config data
 //
@@ -43,12 +286,16 @@ else
 	{
 		$config_name = $row['config_name'];
 		$config_value = $row['config_value'];
-		$default_config[$config_name] = isset($HTTP_POST_VARS['submit']) ? str_replace("'", "\'", $config_value) : $config_value;
+		// Comienzo SQL-05
+		$default_config[$config_name] = $config_value;
 		
 		$new[$config_name] = ( isset($HTTP_POST_VARS[$config_name]) ) ? $HTTP_POST_VARS[$config_name] : $default_config[$config_name];
 
-		if ($config_name == 'cookie_name')
-		{
+		if (!is_string($new[$config_name])) {
+			message_die(GENERAL_MESSAGE, 'Valor de configuración inválido.');
+		}
+		
+		if ($config_name == 'cookie_name') {
 			$new['cookie_name'] = str_replace('.', '_', $new['cookie_name']);
 		}
 
@@ -59,26 +306,20 @@ else
 			$new['server_name'] = str_replace('http://', '', $new['server_name']);
 		}
 
-		// Attempt to prevent a mistake with this value.
-		if ($config_name == 'avatar_path')
-		{
-			$new['avatar_path'] = trim($new['avatar_path']);
-			if (strstr($new['avatar_path'], "\0") || !is_dir($phpbb_root_path . $new['avatar_path']) || !is_writable($phpbb_root_path . $new['avatar_path']))
-			{
-				$new['avatar_path'] = $default_config['avatar_path'];
-			}
-		}
+		if (isset($HTTP_POST_VARS['submit'])) {
+			$sql_config_value = $db->sql_escape_string($new[$config_name]);
+			$sql_config_name = $db->sql_escape_string($config_name);
 
-		if( isset($HTTP_POST_VARS['submit']) )
-		{
-			$sql = "UPDATE " . CONFIG_TABLE . " SET
-				config_value = '" . str_replace("\'", "''", $new[$config_name]) . "'
-				WHERE config_name = '$config_name'";
-			if( !$db->sql_query($sql) )
-			{
-				message_die(GENERAL_ERROR, "Failed to update general configuration for $config_name", "", __LINE__, __FILE__, $sql);
+			$sql = "UPDATE " . CONFIG_TABLE . "
+				SET config_value = '" . $sql_config_value . "'
+				WHERE config_name = '" . $sql_config_name . "'";
+
+			if (!$db->sql_query($sql)) {
+				error_log('General configuration update failed');
+				message_die(GENERAL_ERROR,'No se pudo actualizar la configuración.');
 			}
 		}
+		// Fin SQL-05
 	}
 
 	if( isset($HTTP_POST_VARS['submit']) )
