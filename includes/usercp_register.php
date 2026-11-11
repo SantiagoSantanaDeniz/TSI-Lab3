@@ -108,8 +108,25 @@ isset($HTTP_POST_VARS['Submit']) ||
 		}
 	}
 
-	if ( $mode == 'editprofile' )
-	{
+	$profile_boolean_fields = array(
+		'viewemail',
+		'hideonline',
+		'notifyreply',
+		'notifypm',
+		'popup_pm',
+		'attachsig',
+		'allowhtml',
+		'allowbbcode',
+		'allowsmilies'
+	);
+
+	foreach ($profile_boolean_fields as $field) {
+		if (isset($HTTP_POST_VARS[$field]) && !in_array($HTTP_POST_VARS[$field], array('0', '1'), true)) {
+			message_die(GENERAL_MESSAGE, 'Valor inválido para la preferencia ' . $field . '.');
+		}
+	}
+
+	if ( $mode == 'editprofile' ) {
 		$user_id = intval($HTTP_POST_VARS['user_id']);
 		$current_email = trim(htmlspecialchars($HTTP_POST_VARS['current_email']));
 	}
@@ -172,26 +189,54 @@ $sid = (isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_sid'])) ? $HTTP
 		$allowsmilies = ( isset($HTTP_POST_VARS['allowsmilies']) ) ? ( ($HTTP_POST_VARS['allowsmilies']) ? TRUE : 0 ) : $userdata['user_allowsmile'];
 	}
 
-	$user_style = ( isset($HTTP_POST_VARS['style']) ) ? intval($HTTP_POST_VARS['style']) : $board_config['default_style'];
+	$style_value = isset($HTTP_POST_VARS['style']) ? trim($HTTP_POST_VARS['style']) : (string) $board_config['default_style'];
 
-	if ( !empty($HTTP_POST_VARS['language']) )
-	{
-		if (TRUE or preg_match('/^[a-z_]+$/i', $HTTP_POST_VARS['language']) )
-		{
-			$user_lang = htmlspecialchars($HTTP_POST_VARS['language']);
-		}
-		else
-		{
-			$error = true;
-			$error_msg = $lang['Fields_empty'];
-		}
-	}
-	else
-	{
-		$user_lang = $board_config['default_lang'];
+	$style_id = filter_var($style_value, FILTER_VALIDATE_INT, array('options' => array('min_range' => 1)));
+
+	if ($style_id === false) {
+		message_die(GENERAL_MESSAGE, 'Estilo inválido.');
 	}
 
-	$user_timezone = ( isset($HTTP_POST_VARS['timezone']) ) ? doubleval($HTTP_POST_VARS['timezone']) : $board_config['board_timezone'];
+	$sql = "SELECT themes_id
+		FROM " . THEMES_TABLE . "
+		WHERE themes_id = " . $style_id;
+
+	$style_result = $db->sql_query($sql);
+
+	if (!$style_result) {
+		error_log('Profile style validation failed'); message_die(GENERAL_ERROR, 'No se pudo validar el estilo.');
+	}
+
+	$style_exists = $db->sql_fetchrow($style_result);
+	$db->sql_freeresult($style_result);
+
+	if (!$style_exists) {
+		message_die(GENERAL_MESSAGE, 'El estilo seleccionado no existe.');
+	}
+
+	$user_style = $style_id;
+
+	$user_lang = isset($HTTP_POST_VARS['language']) ? $HTTP_POST_VARS['language'] : $board_config['default_lang'];
+
+	if (!preg_match('/\A[a-zA-Z0-9_-]+\z/', $user_lang)) {
+		message_die(GENERAL_MESSAGE, 'Idioma inválido.');
+	}
+
+	$profile_language_path = $phpbb_root_path. 'language/lang_' . $user_lang;
+
+	if (!is_dir($profile_language_path) || is_link($profile_language_path) || !is_file($profile_language_path . '/lang_main.' . $phpEx)) {
+		message_die(GENERAL_MESSAGE, 'El idioma seleccionado no está instalado.');
+	}
+
+	$timezone_value = isset($HTTP_POST_VARS['timezone']) ? $HTTP_POST_VARS['timezone'] : (string) $board_config['board_timezone'];
+
+	$allowed_timezones = array_map('strval', array_keys($lang['tz']));
+
+	if (!in_array($timezone_value, $allowed_timezones, true)) {
+		message_die(GENERAL_MESSAGE, 'Zona horaria inválida.');
+	}
+
+	$user_timezone = (float) $timezone_value;
 
 	$sql = "SELECT config_value
 		FROM " . CONFIG_TABLE . "

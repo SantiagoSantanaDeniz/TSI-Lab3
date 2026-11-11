@@ -154,7 +154,8 @@ function prepare_post(&$mode, &$post_data, &$bbcode_on, &$html_on, &$smilies_on,
 					$temp_option_text[intval($option_id)] = htmlspecialchars($option_text);
 				}
 			}
-			$option_text = $temp_option_text;
+			
+			$poll_options = $temp_option_text;
 
 			if (count($poll_options) < 2)
 			{
