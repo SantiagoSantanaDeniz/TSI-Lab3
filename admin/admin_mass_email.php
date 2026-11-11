@@ -49,22 +49,28 @@ $subject = '';
 //
 // Do the job ...
 //
-if ( isset($HTTP_POST_VARS['submit']) )
-{
+if ( isset($HTTP_POST_VARS['submit']) ) {
+
+	// Comienzo XSS-03
+	foreach (array('subject', 'message') as $field) {
+		if (isset($HTTP_POST_VARS[$field]) && !is_string($HTTP_POST_VARS[$field])) {
+			message_die(GENERAL_MESSAGE, 'Datos de correo inválidos.');
+		}
+	}
+	// Fin XSS-03
+
 	$subject = stripslashes(trim($HTTP_POST_VARS['subject']));
 	$message = stripslashes(trim($HTTP_POST_VARS['message']));
 	
 	$error = FALSE;
 	$error_msg = '';
 
-	if ( empty($subject) )
-	{
+	if ( empty($subject) ) {
 		$error = true;
 		$error_msg .= ( !empty($error_msg) ) ? '<br />' . $lang['Empty_subject'] : $lang['Empty_subject'];
 	}
 
-	if ( empty($message) )
-	{
+	if ( empty($message) ) {
 		$error = true;
 		$error_msg .= ( !empty($error_msg) ) ? '<br />' . $lang['Empty_message'] : $lang['Empty_message'];
 	}
@@ -72,24 +78,19 @@ if ( isset($HTTP_POST_VARS['submit']) )
 	$group_id = intval($HTTP_POST_VARS[POST_GROUPS_URL]);
 
 	$sql = ( $group_id != -1 ) ? "SELECT u.user_email FROM " . USERS_TABLE . " u, " . USER_GROUP_TABLE . " ug WHERE ug.group_id = $group_id AND ug.user_pending <> " . TRUE . " AND u.user_id = ug.user_id" : "SELECT user_email FROM " . USERS_TABLE;
-	if ( !($result = $db->sql_query($sql)) )
-	{
+	if ( !($result = $db->sql_query($sql)) ) {
 		message_die(GENERAL_ERROR, 'Could not select group members', '', __LINE__, __FILE__, $sql);
 	}
 
-	if ( $row = $db->sql_fetchrow($result) )
-	{
+	if ( $row = $db->sql_fetchrow($result) ) {
 		$bcc_list = array();
-		do
-		{
+		do {
 			$bcc_list[] = $row['user_email'];
 		}
 		while ( $row = $db->sql_fetchrow($result) );
 
 		$db->sql_freeresult($result);
-	}
-	else
-	{
+	} else {
 		$message = ( $group_id != -1 ) ? $lang['Group_not_exist'] : $lang['No_such_user'];
 
 		$error = true;
@@ -190,8 +191,8 @@ $template->set_filenames(array(
 );
 
 $template->assign_vars(array(
-	'MESSAGE' => $message,
-	'SUBJECT' => $subject, 
+    'MESSAGE' => htmlspecialchars($message, ENT_QUOTES, $lang['ENCODING']),
+    'SUBJECT' => htmlspecialchars($subject, ENT_QUOTES, $lang['ENCODING']),
 
 	'L_EMAIL_TITLE' => $lang['Email'],
 	'L_EMAIL_EXPLAIN' => $lang['Mass_email_explain'],
