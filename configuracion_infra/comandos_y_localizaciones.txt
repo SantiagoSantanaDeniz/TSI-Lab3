@@ -1,3 +1,9 @@
+Ruta:
+/etc/opt/remi/php56/php.ini
+/etc/httpd/conf/httpd.conf
+/var/www/OriginalPhpbb/.htaccess
+
+Comandos:
 sudo chown apache:apache /var/www/OriginalPhpbb/.htaccess
 sudo systemctl restart httpd
 sudo systemctl restart php56-php-fpm
