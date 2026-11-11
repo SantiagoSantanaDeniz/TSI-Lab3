@@ -339,6 +339,27 @@ class sql_db
 		return $result;
 	}
 
+	// Escapa un texto utilizando la conexión activa.
+	function sql_escape_string($value) {
+		if ($value === null) {
+			$value = '';
+		}
+
+		if (!is_string($value)) {
+			message_die(GENERAL_ERROR, 'Invalid text value');
+		}
+
+		$escaped = mysql_real_escape_string(
+			$value,
+			$this->db_connect_id
+		);
+
+		if ($escaped === false) {
+			message_die(GENERAL_ERROR, 'Could not prepare database value');
+		}
+
+		return $escaped;
+	}
 } // class sql_db
 
 } // if ... define

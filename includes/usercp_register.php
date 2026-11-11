@@ -102,6 +102,12 @@ isset($HTTP_POST_VARS['Submit']) ||
 	include($phpbb_root_path . 'includes/bbcode.'.$phpEx);
 	include($phpbb_root_path . 'includes/functions_post.'.$phpEx);
 
+	foreach ($HTTP_POST_VARS as $value) {
+		if (!is_string($value)) {
+			message_die(GENERAL_ERROR, 'Invalid profile data');
+		}
+	}
+
 	if ( $mode == 'editprofile' )
 	{
 		$user_id = intval($HTTP_POST_VARS['user_id']);
@@ -526,12 +532,80 @@ if ( isset($HTTP_POST_VARS['Submit']) )
 				$user_actkey = '';
 			}
 
-			$sql = "UPDATE " . USERS_TABLE . "
-				SET " . $username_sql . $passwd_sql . "user_email = '" . $email ."', user_icq = '" . str_replace("\'", "''", $icq) . "', user_website = '" . str_replace("\'", "''", $website) . "', user_occ = '" . str_replace("\'", "''", $occupation) . "', user_from = '" . str_replace("\'", "''", $location) . "', user_interests = '" . str_replace("\'", "''", $interests) . "', user_sig = '" . str_replace("\'", "''", $signature) . "', user_sig_bbcode_uid = '$signature_bbcode_uid', user_viewemail = $viewemail, user_aim = '" . str_replace("\'", "''", str_replace(' ', '+', $aim)) . "', user_yim = '" . str_replace("\'", "''", $yim) . "', user_msnm = '" . str_replace("\'", "''", $msn) . "', user_attachsig = $attachsig, user_allowsmile = $allowsmilies, user_allowhtml = $allowhtml, user_allowbbcode = $allowbbcode, user_allow_viewonline = $allowviewonline, user_notify = $notifyreply, user_notify_pm = $notifypm, user_popup_pm = $popup_pm, user_timezone = $user_timezone, user_dateformat = '" . str_replace("\'", "''", $user_dateformat) . "', user_lang = '" . $user_lang . "', user_style = $user_style, user_active = $user_active, user_actkey = '" . str_replace("\'", "''", $user_actkey) . "'" . $avatar_sql . " WHERE user_id = $user_id";
-			if ( !($result = $db->sql_query($sql)) )
-			{
-				message_die(GENERAL_ERROR, 'Could not update users table', '', __LINE__, __FILE__, $sql);
+			// Comienzo SQL-02 //
+			$profile_text = array(
+				'user_email' => $email,
+				'user_icq' => $icq,
+				'user_website' => $website,
+				'user_occ' => $occupation,
+				'user_from' => $location,
+				'user_interests' => $interests,
+				'user_sig' => $signature,
+				'user_sig_bbcode_uid' => $signature_bbcode_uid,
+				'user_aim' => str_replace(' ', '+', $aim),
+				'user_yim' => $yim,
+				'user_msnm' => $msn,
+				'user_dateformat' => $user_dateformat,
+				'user_lang' => $user_lang,
+				'user_actkey' => $user_actkey
+			);
+
+			if ($username_sql != '') {
+				$profile_text['username'] = $username;
 			}
+
+			if ($passwd_sql != '') {
+				$profile_text['user_password'] = $new_password;
+			}
+
+			$profile_flags = array(
+				'user_viewemail' => $viewemail,
+				'user_attachsig' => $attachsig,
+				'user_allowsmile' => $allowsmilies,
+				'user_allowhtml' => $allowhtml,
+				'user_allowbbcode' => $allowbbcode,
+				'user_allow_viewonline' => $allowviewonline,
+				'user_notify' => $notifyreply,
+				'user_notify_pm' => $notifypm,
+				'user_popup_pm' => $popup_pm,
+				'user_active' => $user_active
+			);
+
+			$profile_set = array();
+
+			foreach ($profile_text as $column => $value) {
+				$profile_set[] = $column . " = '"
+					. $db->sql_escape_string($value) . "'";
+			}
+
+			foreach ($profile_flags as $column => $value) {
+				$profile_set[] = $column . ' = ' . ($value ? 1 : 0);
+			}
+
+			$profile_set[] = 'user_style = ' . intval($user_style);
+
+			$profile_timezone = (float) $user_timezone;
+
+			if (!is_finite($profile_timezone)) {
+				message_die(GENERAL_ERROR, 'Invalid timezone');
+			}
+
+			$profile_set[] = 'user_timezone = '
+				. str_replace(',', '.', sprintf('%.10F', $profile_timezone));
+
+			$profile_user_id = intval($userdata['user_id']);
+
+			$sql = "UPDATE " . USERS_TABLE . "
+				SET " . implode(', ', $profile_set)
+				. $avatar_sql . "
+				WHERE user_id = " . $profile_user_id;
+
+			if (!($result = $db->sql_query($sql))) {
+				error_log('Profile update failed');
+
+				message_die(GENERAL_ERROR,'No se pudo actualizar el perfil. Intente nuevamente.');
+			}
+			// Fin SQL-02 //
 
 			// We remove all stored login keys since the password has been updated
 			// and change the current one (if applicable)
