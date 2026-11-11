@@ -26,6 +26,11 @@
 //
 define("IN_LOGIN", true);
 
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
+error_reporting(0);
+date_default_timezone_set('UTC');
+
 define('IN_PHPBB', true);
 $phpbb_root_path = './';
 include($phpbb_root_path . 'extension.inc');
@@ -61,7 +66,7 @@ if( isset($HTTP_POST_VARS['login']) || isset($HTTP_GET_VARS['login']) || isset($
 			message_die(GENERAL_MESSAGE, $lang['Error_login']);
 		}
 
-		$sql_username = $db->sql_escape_string($username);    
+		$sql_username = addslashes($username);    
 
 		$sql = "SELECT user_id, username, user_password, user_active, user_level, user_login_tries, user_last_login_try
 			FROM " . USERS_TABLE . "
@@ -99,6 +104,9 @@ if( isset($HTTP_POST_VARS['login']) || isset($HTTP_GET_VARS['login']) || isset($
 				if ( !($result_checkpasswd = $db->sql_query($sql_checkpasswd)) ) {
 					message_die(GENERAL_ERROR, 'Error in obtaining userdata', '', __LINE__, __FILE__, $sql);
 				}
+
+/* Inicio arreglo vulnerabilidad AUT-02, ID: 14, CWE-840 */
+				$login_user_row = $row;
 				$row = $db->sql_fetchrow($result_checkpasswd);
 				if($row && $row['user_active'] )
 				{
@@ -121,17 +129,18 @@ if( isset($HTTP_POST_VARS['login']) || isset($HTTP_GET_VARS['login']) || isset($
 					}
 				}
 				// Only store a failed login attempt for an active user - inactive users can't login even with a correct password
-				elseif( $row['user_active'] )
+				elseif( $login_user_row['user_active'] )
 				{
 					// Save login tries and last login
-					if ($row['user_id'] != ANONYMOUS)
+					if ($login_user_row['user_id'] != ANONYMOUS)
 					{
 						$sql = 'UPDATE ' . USERS_TABLE . '
 							SET user_login_tries = user_login_tries + 1, user_last_login_try = ' . time() . '
-							WHERE user_id = ' . $row['user_id'];
+							WHERE user_id = ' . $login_user_row['user_id'];
 						$db->sql_query($sql);
 					}
 				}
+/* Fin arreglo vulnerabilidad AUT-02, ID: 14, CWE-840 */
 
 				$redirect = ( !empty($HTTP_POST_VARS['redirect']) ) ? str_replace('&amp;', '&', htmlspecialchars($HTTP_POST_VARS['redirect'])) : '';
 				$redirect = str_replace('?', '&', $redirect);
