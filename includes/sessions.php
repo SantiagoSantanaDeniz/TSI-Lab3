@@ -251,8 +251,10 @@ function session_begin($user_id, $user_ip, $page_id, $auto_create = 0, $enable_a
 	$userdata['session_admin'] = $admin;
 	$userdata['session_key'] = $sessiondata['autologinid'];
 
-	setcookie($cookiename . '_data', serialize($sessiondata), $current_time + 31536000, $cookiepath, $cookiedomain, $cookiesecure);
-	setcookie($cookiename . '_sid', $session_id, 0, $cookiepath, $cookiedomain, $cookiesecure);
+	/* Inicio arreglo vulnerabilidad SES-02, IDs: 5-6, CWE-1004 */
+	setcookie($cookiename . '_data', serialize($sessiondata), $current_time + 31536000, $cookiepath, $cookiedomain, $cookiesecure, true);
+	setcookie($cookiename . '_sid', $session_id, 0, $cookiepath, $cookiedomain, $cookiesecure, true);
+	/* Fin arreglo vulnerabilidad SES-02, IDs: 5-6, CWE-1004 */
 
 	$SID = 'sid=' . $session_id;
 
@@ -363,8 +365,10 @@ function session_pagestart($user_ip, $thispage_id)
 
 					session_clean($userdata['session_id']);
 
-					setcookie($cookiename . '_data', serialize($sessiondata), $current_time + 31536000, $cookiepath, $cookiedomain, $cookiesecure);
-					setcookie($cookiename . '_sid', $session_id, 0, $cookiepath, $cookiedomain, $cookiesecure);
+					/* Inicio arreglo vulnerabilidad SES-02, IDs: 23-24, 108-109, 222-223, 233-234, CWE-1004 */
+					setcookie($cookiename . '_data', serialize($sessiondata), $current_time + 31536000, $cookiepath, $cookiedomain, $cookiesecure, true);
+					setcookie($cookiename . '_sid', $session_id, 0, $cookiepath, $cookiedomain, $cookiesecure, true);
+					/* Fin arreglo vulnerabilidad SES-02, IDs: 23-24, 108-109, 222-223, 233-234, CWE-1004 */
 				}
 
 				// Add the session_key to the userdata array if it is set
@@ -459,8 +463,10 @@ function session_end($session_id, $user_id)
 	$db->sql_freeresult($result);
 
 
-	setcookie($cookiename . '_data', '', $current_time - 31536000, $cookiepath, $cookiedomain, $cookiesecure);
-	setcookie($cookiename . '_sid', '', $current_time - 31536000, $cookiepath, $cookiedomain, $cookiesecure);
+	/* Inicio arreglo vulnerabilidad SES-02, IDs: 239-240, CWE-1004 */
+	setcookie($cookiename . '_data', '', $current_time - 31536000, $cookiepath, $cookiedomain, $cookiesecure, true);
+	setcookie($cookiename . '_sid', '', $current_time - 31536000, $cookiepath, $cookiedomain, $cookiesecure, true);
+	/* Fin arreglo vulnerabilidad SES-02, IDs: 239-240, CWE-1004 */
 
 	return true;
 }
@@ -549,7 +555,9 @@ function session_reset_keys($user_id, $user_ip)
 		$cookiedomain = $board_config['cookie_domain'];
 		$cookiesecure = $board_config['cookie_secure'];
 
-		setcookie($cookiename . '_data', serialize($sessiondata), $current_time + 31536000, $cookiepath, $cookiedomain, $cookiesecure);
+		/* Inicio arreglo vulnerabilidad SES-02, CWE-1004 */
+		setcookie($cookiename . '_data', serialize($sessiondata), $current_time + 31536000, $cookiepath, $cookiedomain, $cookiesecure, true);
+		/* Fin arreglo vulnerabilidad SES-02, CWE-1004 */
 		
 		$userdata['session_key'] = $auto_login_key;
 		unset($sessiondata);
