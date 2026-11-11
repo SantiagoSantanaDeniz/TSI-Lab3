@@ -57,13 +57,14 @@ else
 	$search_keywords = '';
 }
 
-if ( isset($HTTP_POST_VARS['search_author']) || isset($HTTP_GET_VARS['search_author']))
-{
-	$search_author = ( isset($HTTP_POST_VARS['search_author']) ) ? $HTTP_POST_VARS['search_author'] : $HTTP_GET_VARS['search_author'];
+if ( isset($HTTP_POST_VARS['search_author']) || isset($HTTP_GET_VARS['search_author'])) {
+	$search_author = isset($HTTP_POST_VARS['search_author']) ? $HTTP_POST_VARS['search_author'] : $HTTP_GET_VARS['search_author'];
+	
+	if (!is_string($search_author)) {
+		message_die(GENERAL_MESSAGE, 'Invalid search data');
+	}
 	$search_author = phpbb_clean_username($search_author);
-}
-else
-{
+} else {
 	$search_author = '';
 }
 
@@ -226,10 +227,10 @@ else if ( $search_keywords != '' || $search_author != '' || $search_id )
 
 				$sql = "SELECT user_id
 					FROM " . USERS_TABLE . "
-					WHERE username LIKE '" . str_replace("\'", "''", $search_author) . "'";
-				if ( !($result = $db->sql_query($sql)) )
-				{
-					message_die(GENERAL_ERROR, "Couldn't obtain list of matching users (searching for: $search_author)", "", __LINE__, __FILE__, $sql);
+					WHERE username LIKE '" . $db->sql_escape_string($search_author) . "'";
+				if (!($result = $db->sql_query($sql))) {
+    				error_log('Author lookup failed');
+					message_die(GENERAL_ERROR, 'No se pudo completar la búsqueda.');
 				}
 
 				$matching_userids = '';
@@ -504,7 +505,8 @@ else if ( $search_keywords != '' || $search_author != '' || $search_id )
 						if ( $search_author != '' )
 						{
 							$from_sql .= ", " . USERS_TABLE . " u";
-							$where_sql .= " AND u.user_id = p.poster_id AND u.username LIKE '$search_author' ";
+							$where_sql .= " AND u.user_id = p.poster_id AND u.username LIKE '"
+    							. $db->sql_escape_string($search_author) . "' ";
 						}
 
 						if ( $auth_sql != '' )
@@ -582,7 +584,8 @@ else if ( $search_keywords != '' || $search_author != '' || $search_id )
 					if ( $search_author != '' )
 					{
 						$from_sql .= ", " . USERS_TABLE . " u";
-						$where_sql .= " AND u.user_id = p.poster_id AND u.username LIKE '$search_author'";
+						$where_sql .= " AND u.user_id = p.poster_id AND u.username LIKE '"
+    						. $db->sql_escape_string($search_author) . "'";
 					}
 
 					$sql = "SELECT " . $select_sql . " 

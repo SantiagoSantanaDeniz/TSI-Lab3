@@ -57,14 +57,7 @@ if( isset($HTTP_POST_VARS['login']) || isset($HTTP_GET_VARS['login']) || isset($
     		message_die(GENERAL_MESSAGE, $lang['Error_login']);
 		}
 
-		$sql_username = mysql_real_escape_string(
-			$username,
-    		$db->db_connect_id
-		);
-
-		if ($sql_username === false) {
-			message_die(GENERAL_ERROR, 'Error in obtaining userdata');
-		}
+		$sql_username = $db->sql_escape_string($username);    
 
 		$sql = "SELECT user_id, username, user_password, user_active, user_level, user_login_tries, user_last_login_try
 			FROM " . USERS_TABLE . "

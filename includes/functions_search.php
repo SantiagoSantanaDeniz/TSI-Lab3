@@ -93,7 +93,7 @@ function split_words($entry, $mode = 'post')
 {
 	// If you experience problems with the new method, uncomment this block.
 /*	
-	$rex = ( $mode == 'post' ) ? "/\b([\w±µ-ÿ][\w±µ-ÿ']*[\w±µ-ÿ]+|[\w±µ-ÿ]+?)\b/" : '/(\*?[a-z0-9±µ-ÿ]+\*?)|\b([a-z0-9±µ-ÿ]+)\b/';
+	$rex = ( $mode == 'post' ) ? "/\b([\wï¿½ï¿½-ï¿½][\wï¿½ï¿½-ï¿½']*[\wï¿½ï¿½-ï¿½]+|[\wï¿½ï¿½-ï¿½]+?)\b/" : '/(\*?[a-z0-9ï¿½ï¿½-ï¿½]+\*?)|\b([a-z0-9ï¿½ï¿½-ï¿½]+)\b/';
 	preg_match_all($rex, $entry, $split_entries);
 
 	return $split_entries[1];
@@ -430,32 +430,36 @@ function username_search($search_match)
 	global $db, $board_config, $template, $lang, $images, $theme, $phpEx, $phpbb_root_path;
 	global $starttime, $gen_simple_header;
 	
+	// Comienzo SQL-03
+	if (!is_string($search_match)) {
+		message_die(GENERAL_MESSAGE, 'Invalid search data');
+	}
+
 	$gen_simple_header = TRUE;
 
 	$username_list = '';
-	if ( !empty($search_match) )
-	{
-		$username_search = preg_replace('/\*/', '%', phpbb_clean_username($search_match));
+	if ( !empty($search_match) ) {
+		$username_search = str_replace('*', '%', phpbb_clean_username($search_match));
 
-		$sql = "SELECT username 
-			FROM " . USERS_TABLE . " 
-			WHERE username LIKE '" . str_replace("\'", "''", $username_search) . "' AND user_id <> " . ANONYMOUS . "
+		$sql_username_search = $db->sql_escape_string($username_search);
+
+		$sql = "SELECT username
+			FROM " . USERS_TABLE . "
+			WHERE username LIKE '" . $sql_username_search . "'
+				AND user_id <> " . intval(ANONYMOUS) . "
 			ORDER BY username";
-		if ( !($result = $db->sql_query($sql)) )
-		{
-			message_die(GENERAL_ERROR, 'Could not obtain search results', '', __LINE__, __FILE__, $sql);
+
+		if (!($result = $db->sql_query($sql))) {
+			error_log('Username search failed');
+			message_die(GENERAL_ERROR,'No se pudo completar la bÃºsqueda.');
 		}
 
-		if ( $row = $db->sql_fetchrow($result) )
-		{
-			do
-			{
+		if ( $row = $db->sql_fetchrow($result) ) {
+			do {
 				$username_list .= '<option value="' . $row['username'] . '">' . $row['username'] . '</option>';
-			}
-			while ( $row = $db->sql_fetchrow($result) );
+			} while ( $row = $db->sql_fetchrow($result) );
 		}
-		else
-		{
+		else {
 			$username_list .= '<option>' . $lang['No_match']. '</option>';
 		}
 		$db->sql_freeresult($result);
