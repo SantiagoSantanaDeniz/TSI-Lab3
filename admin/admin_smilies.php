@@ -70,6 +70,33 @@ else
 	$mode = "";
 }
 
+// Comienzo SQL-08
+if ($mode === 'save' || $mode === 'savenew') {
+    foreach (array('smile_code', 'smile_url', 'smile_emotion') as $field) {
+        if (isset($HTTP_POST_VARS[$field]) && !is_string($HTTP_POST_VARS[$field])) {
+            message_die(GENERAL_MESSAGE, 'Datos de emoticono inválidos.');
+        }
+    }
+
+    if ($mode === 'save') {
+        $smile_id_input = isset($HTTP_POST_VARS['smile_id']) ? $HTTP_POST_VARS['smile_id'] : '';
+
+        if (!is_string($smile_id_input)) {
+            message_die(GENERAL_MESSAGE, 'Identificador de emoticono inválido.');
+        }
+
+        $validated_smile_id = filter_var($smile_id_input, FILTER_VALIDATE_INT, array('options' => array('min_range' => 1)));
+
+        if ($validated_smile_id === false) {
+            message_die(GENERAL_MESSAGE, 'Identificador de emoticono inválido.');
+        }
+
+        $HTTP_POST_VARS['smile_id'] = (string) $validated_smile_id;
+    }
+}
+// Fin SQL-08
+
+
 $delimeter  = '=+:';
 
 //
@@ -160,30 +187,27 @@ if( isset($HTTP_GET_VARS['import_pack']) || isset($HTTP_POST_VARS['import_pack']
 				$smile_data[$j] = str_replace(">", "&gt;", $smile_data[$j]);
 				$k = $smile_data[$j];
 
-				if( $smiles[$k] == 1 )
-				{
-					if( !empty($replace_existing) )
-					{
-						$sql = "UPDATE " . SMILIES_TABLE . " 
-							SET smile_url = '" . str_replace("\'", "''", $smile_data[0]) . "', emoticon = '" . str_replace("\'", "''", $smile_data[1]) . "' 
-							WHERE code = '" . str_replace("\'", "''", $smile_data[$j]) . "'";
-					}
-					else
-					{
+				if( $smiles[$k] == 1 ) {
+					if( !empty($replace_existing) ) {
+						$sql = "UPDATE " . SMILIES_TABLE . "
+							SET smile_url = '" . $db->sql_escape_string($smile_data[0]) . "',
+								emoticon = '" . $db->sql_escape_string($smile_data[1]) . "'
+							WHERE code = '" . $db->sql_escape_string($smile_data[$j]) . "'";
+					} else {
 						$sql = '';
 					}
+				} else {
+					$sql = "INSERT INTO " . SMILIES_TABLE . "
+						(code, smile_url, emoticon)
+						VALUES (
+							'" . $db->sql_escape_string($smile_data[$j]) . "',
+							'" . $db->sql_escape_string($smile_data[0]) . "',
+							'" . $db->sql_escape_string($smile_data[1]) . "'
+						)";
 				}
-				else
-				{
-					$sql = "INSERT INTO " . SMILIES_TABLE . " (code, smile_url, emoticon)
-						VALUES('" . str_replace("\'", "''", $smile_data[$j]) . "', '" . str_replace("\'", "''", $smile_data[0]) . "', '" . str_replace("\'", "''", $smile_data[1]) . "')";
-				}
-
-				if( $sql != '' )
-				{
+				if( $sql != '' ) {
 					$result = $db->sql_query($sql);
-					if( !$result )
-					{
+					if( !$result ) {
 						message_die(GENERAL_ERROR, "Couldn't update smilies!", "", __LINE__, __FILE__, $sql);
 					}
 				}
@@ -194,17 +218,13 @@ if( isset($HTTP_GET_VARS['import_pack']) || isset($HTTP_POST_VARS['import_pack']
 
 		message_die(GENERAL_MESSAGE, $message);
 		
-	}
-	else
-	{
+	} else {
 		//
 		// Display the script to get the smile_pak cfg file...
 		//
 		$smile_paks_select = "<select name='smile_pak'><option value=''>" . $lang['Select_pak'] . "</option>";
-		while( list($key, $value) = @each($smiley_paks) )
-		{
-			if ( !empty($value) ) 
-			{
+		while( list($key, $value) = @each($smiley_paks) ) {
+			if ( !empty($value) )  {
 				$smile_paks_select .= "<option>" . $value . "</option>";
 			}
 		}
@@ -457,13 +477,19 @@ else if ( $mode != "" )
 			//
 			// Proceed with updating the smiley table.
 			//
+
+			// Comienzo SQL-08
 			$sql = "UPDATE " . SMILIES_TABLE . "
-				SET code = '" . str_replace("\'", "''", $smile_code) . "', smile_url = '" . str_replace("\'", "''", $smile_url) . "', emoticon = '" . str_replace("\'", "''", $smile_emotion) . "'
-				WHERE smilies_id = $smile_id";
-			if( !($result = $db->sql_query($sql)) )
-			{
-				message_die(GENERAL_ERROR, "Couldn't update smilies info", "", __LINE__, __FILE__, $sql);
+				SET code = '" . $db->sql_escape_string($smile_code) . "',
+					smile_url = '" . $db->sql_escape_string($smile_url) . "',
+					emoticon = '" . $db->sql_escape_string($smile_emotion) . "'
+				WHERE smilies_id = " . intval($smile_id);
+
+			if (!($result = $db->sql_query($sql))) {
+				error_log('Smiley update failed');
+				message_die(GENERAL_ERROR, 'No se pudo actualizar el emoticono.');
 			}
+			// Fin SQL-08 
 
 			$message = $lang['smiley_edit_success'] . "<br /><br />" . sprintf($lang['Click_return_smileadmin'], "<a href=\"" . append_sid("admin_smilies.$phpEx") . "\">", "</a>") . "<br /><br />" . sprintf($lang['Click_return_admin_index'], "<a href=\"" . append_sid("index.$phpEx?pane=right") . "\">", "</a>");
 
@@ -501,13 +527,23 @@ else if ( $mode != "" )
 			//
 			// Save the data to the smiley table.
 			//
-			$sql = "INSERT INTO " . SMILIES_TABLE . " (code, smile_url, emoticon)
-				VALUES ('" . str_replace("\'", "''", $smile_code) . "', '" . str_replace("\'", "''", $smile_url) . "', '" . str_replace("\'", "''", $smile_emotion) . "')";
+
+			// Comienzo SQL-08
+			$sql = "INSERT INTO " . SMILIES_TABLE . "
+				(code, smile_url, emoticon)
+				VALUES (
+					'" . $db->sql_escape_string($smile_code) . "',
+					'" . $db->sql_escape_string($smile_url) . "',
+					'" . $db->sql_escape_string($smile_emotion) . "'
+				)";
+
 			$result = $db->sql_query($sql);
-			if( !$result )
-			{
-				message_die(GENERAL_ERROR, "Couldn't insert new smiley", "", __LINE__, __FILE__, $sql);
+
+			if (!$result) {
+				error_log('Smiley creation failed');
+				message_die(GENERAL_ERROR, 'No se pudo crear el emoticono.');
 			}
+			// Fin SQL-08
 
 			$message = $lang['smiley_add_success'] . "<br /><br />" . sprintf($lang['Click_return_smileadmin'], "<a href=\"" . append_sid("admin_smilies.$phpEx") . "\">", "</a>") . "<br /><br />" . sprintf($lang['Click_return_admin_index'], "<a href=\"" . append_sid("index.$phpEx?pane=right") . "\">", "</a>");
 
