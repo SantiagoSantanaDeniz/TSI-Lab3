@@ -30,6 +30,9 @@ include($phpbb_root_path . 'common.'.$phpEx);
 //
 $userdata = session_pagestart($user_ip, PAGE_INDEX);
 init_userprefs($userdata);
+/* Inicio arreglo vulnerabilidad SES-01, ID: 15, CWE-200 */
+$SID = '';
+/* Fin arreglo vulnerabilidad SES-01, ID: 15, CWE-200 */
 //
 // End session management
 //
