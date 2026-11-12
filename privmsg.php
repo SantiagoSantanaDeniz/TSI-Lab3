@@ -51,7 +51,7 @@ $confirm = ( isset($HTTP_POST_VARS['confirm']) ) ? TRUE : 0;
 $delete = ( isset($HTTP_POST_VARS['delete']) ) ? TRUE : 0;
 $delete_all = ( isset($HTTP_POST_VARS['deleteall']) ) ? TRUE : 0;
 $save = ( isset($HTTP_POST_VARS['save']) ) ? TRUE : 0;
-$sid = (isset($HTTP_POST_VARS['sid'])) ? $HTTP_POST_VARS['sid'] : 0;
+$sid = (isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_sid']) ? $HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_sid'] : '');
 
 $refresh = $preview || $submit_search;
 
@@ -661,7 +661,6 @@ else if ( ( $delete && $mark_list ) || $delete_all )
 	{
 		$s_hidden_fields = '<input type="hidden" name="mode" value="' . $mode . '" />';
 		$s_hidden_fields .= ( isset($HTTP_POST_VARS['delete']) ) ? '<input type="hidden" name="delete" value="true" />' : '<input type="hidden" name="deleteall" value="true" />';
-		$s_hidden_fields .= '<input type="hidden" name="sid" value="' . $userdata['session_id'] . '" />';
 
 		for($i = 0; $i < count($mark_list); $i++)
 		{
@@ -1736,7 +1735,6 @@ else if ( $submit || $refresh || $mode != '' )
 
 	$s_hidden_fields = '<input type="hidden" name="folder" value="' . $folder . '" />';
 	$s_hidden_fields .= '<input type="hidden" name="mode" value="' . $mode . '" />';
-	$s_hidden_fields .= '<input type="hidden" name="sid" value="' . $userdata['session_id'] . '" />';
 	if ( $mode == 'edit' )
 	{
 		$s_hidden_fields .= '<input type="hidden" name="' . POST_POST_URL . '" value="' . $privmsg_id . '" />';

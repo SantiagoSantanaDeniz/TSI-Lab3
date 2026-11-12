@@ -72,7 +72,7 @@ $template->set_filenames(array(
 //
 if ( $userdata['session_logged_in'] )
 {
-	$u_login_logout = 'login.'.$phpEx.'?logout=true&amp;sid=' . $userdata['session_id'];
+	$u_login_logout = 'login.'.$phpEx.'?logout=true';
 	$l_login_logout = $lang['Logout'] . ' [ ' . $userdata['username'] . ' ]';
 }
 else
@@ -389,7 +389,6 @@ $template->assign_vars(array(
 	'U_VIEWONLINE' => append_sid('viewonline.'.$phpEx),
 	'U_LOGIN_LOGOUT' => append_sid($u_login_logout),
 	'S_LOGOUT_ACTION' => phpbb_html(append_sid('login.' . $phpEx), false),
-	'LOGOUT_SID' => phpbb_html($userdata['session_id']),
 	'U_GROUP_CP' => append_sid('groupcp.'.$phpEx),
 
 	'S_CONTENT_DIRECTION' => $lang['DIRECTION'],

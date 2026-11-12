@@ -254,7 +254,6 @@ button.csrf-action:hover { color: {T_BODY_HLINK}; }
 						<!-- BEGIN switch_user_logged_in -->
 						<form method="post" action="{S_LOGOUT_ACTION}" class="logout-form">{CSRF_HIDDEN}
 						<input type="hidden" name="logout" value="true" />
-						<input type="hidden" name="sid" value="{LOGOUT_SID}" />
 						<button type="submit" class="mainmenu logout-button"><img src="templates/subSilver/images/icon_mini_login.gif" width="12" height="13" border="0" alt="" hspace="3" />{L_LOGIN_LOGOUT}</button>
 						</form>
 						<!-- END switch_user_logged_in -->

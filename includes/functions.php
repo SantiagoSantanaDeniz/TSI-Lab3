@@ -295,12 +295,6 @@ function make_jumpbox($action, $match_forum_id = 0) {
 		$boxstring .= '<select name="' . POST_FORUM_URL . '" onchange="if(this.options[this.selectedIndex].value != -1){ forms[\'jumpbox\'].submit() }"></select>';
 	}
 
-	// Let the jumpbox work again in sites having additional session id checks.
-//	if ( !empty($SID) )
-//	{
-		$boxstring .= '<input type="hidden" name="sid" value="' . $userdata['session_id'] . '" />';
-//	}
-
 	$template->set_filenames(array(
 		'jumpbox' => 'jumpbox.tpl')
 	);
@@ -1232,9 +1226,7 @@ function phpbb_csrf_action($url, $label, $class = '')
 
 function phpbb_csrf_action_form()
 {
-    global $userdata;
-    return '<form id="phpbb_csrf_actions" method="post" action="">' . phpbb_csrf_hidden() .
-        '<input type="hidden" name="sid" value="' . phpbb_html($userdata['session_id']) . '" /></form>';
+    return '<form id="phpbb_csrf_actions" method="post" action="">' . phpbb_csrf_hidden() . '</form>';
 }
 
 function phpbb_csrf_request_guard()

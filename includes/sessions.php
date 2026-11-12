@@ -43,8 +43,8 @@ function session_begin($user_id, $user_ip, $page_id, $auto_create = 0, $enable_a
 	else
 	{
 		$sessiondata = array();
-		$session_id = ( isset($HTTP_GET_VARS['sid']) ) ? $HTTP_GET_VARS['sid'] : '';
-		$sessionmethod = SESSION_METHOD_GET;
+		$session_id = '';
+		$sessionmethod = SESSION_METHOD_COOKIE;
 	}
 
 	//
@@ -256,7 +256,7 @@ function session_begin($user_id, $user_ip, $page_id, $auto_create = 0, $enable_a
 	setcookie($cookiename . '_sid', $session_id, 0, $cookiepath . '; SameSite=Lax', $cookiedomain, $cookiesecure, true);
 	/* Fin arreglo vulnerabilidad SES-02 y SES-03, IDs: 7-8, CWE-16, CWE-1004 */
 
-	$SID = 'sid=' . $session_id;
+	$SID = '';
 
 	return $userdata;
 }
@@ -287,8 +287,8 @@ function session_pagestart($user_ip, $thispage_id)
 	else
 	{
 		$sessiondata = array();
-		$session_id = ( isset($HTTP_GET_VARS['sid']) ) ? $HTTP_GET_VARS['sid'] : '';
-		$sessionmethod = SESSION_METHOD_GET;
+		$session_id = ''; // Sessions are accepted only from cookies.
+		$sessionmethod = SESSION_METHOD_COOKIE;
 	}
 
 	// 
@@ -348,7 +348,7 @@ function session_pagestart($user_ip, $thispage_id)
 
 			if ($ip_check_s == $ip_check_u)
 			{
-				$SID = ($sessionmethod == SESSION_METHOD_GET || defined('IN_ADMIN')) ? 'sid=' . $session_id : '';
+				$SID = '';
 
 				//
 				// Only update session DB a minute or so after last update
@@ -577,21 +577,10 @@ function session_reset_keys($user_id, $user_ip)
 }
 
 //
-// Append $SID to a url. Borrowed from phplib and modified. This is an
-// extra routine utilised by the session code above and acts as a wrapper
-// around every single URL and form action. If you replace the session
-// code you must include this routine, even if it's empty.
-//
+// Kept for compatibility with existing callers. Sessions use cookies only.
 function append_sid($url, $non_html_amp = false)
 {
-	global $SID;
-
-	if ( !empty($SID) && !preg_match('#sid=#', $url) )
-	{
-		$url .= ( ( strpos($url, '?') !== false ) ?  ( ( $non_html_amp ) ? '&' : '&amp;' ) : '?' ) . $SID;
-	}
-
-	return $url;
+    return $url;
 }
 
 function phpbb_csrf_token($create = true) {

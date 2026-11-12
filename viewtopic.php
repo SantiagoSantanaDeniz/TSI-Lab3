@@ -61,9 +61,9 @@ if ( isset($HTTP_GET_VARS['view']) && empty($HTTP_GET_VARS[POST_POST_URL]) )
 {
 	if ( $HTTP_GET_VARS['view'] == 'newest' )
 	{
-		if ( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_sid']) || isset($HTTP_GET_VARS['sid']) )
+		if ( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_sid']) )
 		{
-			$session_id = isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_sid']) ? $HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_sid'] : $HTTP_GET_VARS['sid'];
+			$session_id = $HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_sid'];
 
 			if (!preg_match('/^[A-Za-z0-9]*$/', $session_id)) 
 			{
@@ -92,14 +92,7 @@ if ( isset($HTTP_GET_VARS['view']) && empty($HTTP_GET_VARS[POST_POST_URL]) )
 
 				$post_id = $row['post_id'];
 
-				if (isset($HTTP_GET_VARS['sid']))
-				{
-					redirect("viewtopic.$phpEx?sid=$session_id&" . POST_POST_URL . "=$post_id#$post_id");
-				}
-				else
-				{
-					redirect("viewtopic.$phpEx?" . POST_POST_URL . "=$post_id#$post_id");
-				}
+				redirect("viewtopic.$phpEx?" . POST_POST_URL . "=$post_id#$post_id");
 			}
 		}
 
@@ -593,18 +586,18 @@ $topic_mod = '';
 
 if ( $is_auth['auth_mod'] )
 {
-	$s_auth_can .= sprintf($lang['Rules_moderate'], "<a href=\"modcp.$phpEx?" . POST_FORUM_URL . "=$forum_id&amp;sid=" . $userdata['session_id'] . '">', '</a>');
+	$s_auth_can .= sprintf($lang['Rules_moderate'], "<a href=\"modcp.$phpEx?" . POST_FORUM_URL . "=$forum_id" . '">', '</a>');
 
-	$topic_mod .= "<a href=\"modcp.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;mode=delete&amp;sid=" . $userdata['session_id'] . '"><img src="' . $images['topic_mod_delete'] . '" alt="' . $lang['Delete_topic'] . '" title="' . $lang['Delete_topic'] . '" border="0" /></a>&nbsp;';
+	$topic_mod .= "<a href=\"modcp.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;mode=delete" . '"><img src="' . $images['topic_mod_delete'] . '" alt="' . $lang['Delete_topic'] . '" title="' . $lang['Delete_topic'] . '" border="0" /></a>&nbsp;';
 
-	$topic_mod .= "<a href=\"modcp.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;mode=move&amp;sid=" . $userdata['session_id'] . '"><img src="' . $images['topic_mod_move'] . '" alt="' . $lang['Move_topic'] . '" title="' . $lang['Move_topic'] . '" border="0" /></a>&nbsp;';
+	$topic_mod .= "<a href=\"modcp.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;mode=move" . '"><img src="' . $images['topic_mod_move'] . '" alt="' . $lang['Move_topic'] . '" title="' . $lang['Move_topic'] . '" border="0" /></a>&nbsp;';
 
 	$lock_mode = ($forum_topic_data['topic_status'] == TOPIC_UNLOCKED) ? 'lock' : 'unlock';
 	$lock_label = ($lock_mode == 'lock') ? $lang['Lock_topic'] : $lang['Unlock_topic'];
 	$lock_image = ($lock_mode == 'lock') ? $images['topic_mod_lock'] : $images['topic_mod_unlock'];
-	$topic_mod .= phpbb_csrf_action(append_sid("modcp.$phpEx?" . POST_TOPIC_URL . "=$topic_id&mode=$lock_mode&sid=" . $userdata['session_id']), '<img src="' . $lock_image . '" alt="' . $lock_label . '" title="' . $lock_label . '" border="0" />') . '&nbsp;';
+	$topic_mod .= phpbb_csrf_action(append_sid("modcp.$phpEx?" . POST_TOPIC_URL . "=$topic_id&mode=$lock_mode"), '<img src="' . $lock_image . '" alt="' . $lock_label . '" title="' . $lock_label . '" border="0" />') . '&nbsp;';
 
-	$topic_mod .= "<a href=\"modcp.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;mode=split&amp;sid=" . $userdata['session_id'] . '"><img src="' . $images['topic_mod_split'] . '" alt="' . $lang['Split_topic'] . '" title="' . $lang['Split_topic'] . '" border="0" /></a>&nbsp;';
+	$topic_mod .= "<a href=\"modcp.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;mode=split" . '"><img src="' . $images['topic_mod_split'] . '" alt="' . $lang['Split_topic'] . '" title="' . $lang['Split_topic'] . '" border="0" /></a>&nbsp;';
 }
 
 //
@@ -615,7 +608,7 @@ if ( $can_watch_topic )
 {
 	$watch_action = $is_watching_topic ? 'unwatch' : 'watch';
 	$watch_label = $is_watching_topic ? $lang['Stop_watching_topic'] : $lang['Start_watching_topic'];
-	$watch_url = append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id&$watch_action=topic&start=$start&sid=" . $userdata['session_id']);
+	$watch_url = append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id&$watch_action=topic&start=$start");
 	$s_watching_topic = phpbb_csrf_action($watch_url, $watch_label, 'gensmall');
 	$watch_icon = $is_watching_topic ? 'topic_un_watch' : 'Topic_watch';
 	$s_watching_topic_img = isset($images[$watch_icon]) ? phpbb_csrf_action($watch_url, '<img src="' . $images[$watch_icon] . '" alt="' . $watch_label . '" title="' . $watch_label . '" border="0" />') : '';
@@ -802,7 +795,6 @@ if ( !empty($forum_topic_data['topic_vote']) )
 			$vote_title = preg_replace($orig_word, $replacement_word, $vote_title);
 		}
 
-		$s_hidden_fields .= '<input type="hidden" name="sid" value="' . $userdata['session_id'] . '" />';
 
 		$template->assign_vars(array(
 			'POLL_QUESTION' => $vote_title,
@@ -1010,11 +1002,11 @@ for($i = 0; $i < $total_posts; $i++)
 
 	if ( $is_auth['auth_mod'] )
 	{
-		$temp_url = "modcp.$phpEx?mode=ip&amp;" . POST_POST_URL . "=" . $postrow[$i]['post_id'] . "&amp;" . POST_TOPIC_URL . "=" . $topic_id . "&amp;sid=" . $userdata['session_id'];
+		$temp_url = "modcp.$phpEx?mode=ip&amp;" . POST_POST_URL . "=" . $postrow[$i]['post_id'] . "&amp;" . POST_TOPIC_URL . "=" . $topic_id;
 		$ip_img = '<a href="' . $temp_url . '"><img src="' . $images['icon_ip'] . '" alt="' . $lang['View_IP'] . '" title="' . $lang['View_IP'] . '" border="0" /></a>';
 		$ip = '<a href="' . $temp_url . '">' . $lang['View_IP'] . '</a>';
 
-		$temp_url = "posting.$phpEx?mode=delete&amp;" . POST_POST_URL . "=" . $postrow[$i]['post_id'] . "&amp;sid=" . $userdata['session_id'];
+		$temp_url = "posting.$phpEx?mode=delete&amp;" . POST_POST_URL . "=" . $postrow[$i]['post_id'];
 		$delpost_img = '<a href="' . $temp_url . '"><img src="' . $images['icon_delpost'] . '" alt="' . $lang['Delete_post'] . '" title="' . $lang['Delete_post'] . '" border="0" /></a>';
 		$delpost = '<a href="' . $temp_url . '">' . $lang['Delete_post'] . '</a>';
 	}
@@ -1025,7 +1017,7 @@ for($i = 0; $i < $total_posts; $i++)
 
 		if ( $userdata['user_id'] == $poster_id && $is_auth['auth_delete'] && $forum_topic_data['topic_last_post_id'] == $postrow[$i]['post_id'] )
 		{
-			$temp_url = "posting.$phpEx?mode=delete&amp;" . POST_POST_URL . "=" . $postrow[$i]['post_id'] . "&amp;sid=" . $userdata['session_id'];
+			$temp_url = "posting.$phpEx?mode=delete&amp;" . POST_POST_URL . "=" . $postrow[$i]['post_id'];
 			$delpost_img = '<a href="' . $temp_url . '"><img src="' . $images['icon_delpost'] . '" alt="' . $lang['Delete_post'] . '" title="' . $lang['Delete_post'] . '" border="0" /></a>';
 			$delpost = '<a href="' . $temp_url . '">' . $lang['Delete_post'] . '</a>';
 		}
