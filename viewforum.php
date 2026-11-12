@@ -150,7 +150,7 @@ if ( $mark_read == 'topics' )
 			{
 				$tracking_forums[$forum_id] = time();
 
-				setcookie($board_config['cookie_name'] . '_f', serialize($tracking_forums), 0, $board_config['cookie_path'], $board_config['cookie_domain'], $board_config['cookie_secure']);
+				setcookie($board_config['cookie_name'] . '_f', serialize($tracking_forums), 0, $board_config['cookie_path'] . '; samesite=Lax', $board_config['cookie_domain'], $board_config['cookie_secure'], true);
 			}
 		}
 
