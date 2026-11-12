@@ -586,6 +586,10 @@ function append_sid($url, $non_html_amp = false)
 function phpbb_csrf_token($create = true) {
 	global $db, $userdata;
 
+	if (defined('HAS_DIED')) {
+		return '';
+	}
+
 	if (empty($userdata['session_id'])) {
 		message_die(GENERAL_ERROR, 'No se pudo identificar la sesion.');
 	}
