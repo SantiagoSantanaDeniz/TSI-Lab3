@@ -947,6 +947,7 @@ function redirect($url)
 	header('Location: ' . $server_protocol . $server_name . $server_port . $script_name . $url);
 	exit;
 }
+
 function phpbb_purify_html($html, $allowed_elements = null) {
     global $phpbb_root_path, $lang;
 
@@ -972,6 +973,36 @@ function phpbb_purify_html($html, $allowed_elements = null) {
 
 	$html = preg_replace('#(<(?:ul|ol)\b[^>]*>)(?:\s|<br\s*/?>)+(?=<li\b)#i', '$1', $html);
     return $purifiers[$cache_key]->purify($html);
+}
+
+function phpbb_password_hash($password) {
+	if (!is_string($password) || $password === '' || strlen($password) > 72 || strpos($password, "\0") !== false) {
+		message_die(GENERAL_MESSAGE, 'Contrasena invalida o demasiado larga.');
+	}
+
+	$hash = password_hash($password, PASSWORD_BCRYPT, array('cost' => 12));
+
+	if ($hash === false) {
+		message_die(GENERAL_ERROR, 'No se pudo proteger la contrasena.');
+	}
+
+	return $hash;
+}
+
+function phpbb_password_verify($password, $stored_hash) {
+	if (!is_string($password) || !is_string($stored_hash) || strpos($password, "\0") !== false) {
+		return false;
+	}
+
+	if (preg_match('/\A[a-f0-9]{32}\z/i', $stored_hash)) {
+		return hash_equals(strtolower($stored_hash), md5($password));
+	}
+
+	if (strlen($password) > 72) {
+		return false;
+	}
+
+	return password_verify($password, $stored_hash);
 }
 
 ?>

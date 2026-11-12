@@ -74,7 +74,7 @@ if ( isset($HTTP_POST_VARS['submit']) ) {
 			$user_actkey = substr($user_actkey, 0, $key_len);
 			$user_password = gen_rand_string(false);
 			
-			$sql_password_hash = $db->sql_escape_string(md5($user_password));
+			$sql_password_hash = $db->sql_escape_string(phpbb_password_hash($user_password));
 
 			$sql_activation_key = $db->sql_escape_string($user_actkey);
 

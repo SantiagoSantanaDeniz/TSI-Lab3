@@ -392,42 +392,33 @@ if ( isset($HTTP_POST_VARS['Submit']) )
 		{
 			$error = TRUE;
 			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Password_mismatch'];
-		}
-		else if ( strlen($new_password) > 32 )
-		{
+		} else if ( strlen($new_password) > 32 ) {
 			$error = TRUE;
 			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Password_long'];
-		}
-		else
-		{
-			if ( $mode == 'editprofile' )
-			{
+		} else {
+			if ( $mode == 'editprofile' ) {
 				$sql = "SELECT user_password
 					FROM " . USERS_TABLE . "
 					WHERE user_id = $user_id";
-				if ( !($result = $db->sql_query($sql)) )
-				{
+				if ( !($result = $db->sql_query($sql)) ) {
 					message_die(GENERAL_ERROR, 'Could not obtain user_password information', '', __LINE__, __FILE__, $sql);
 				}
 
 				$row = $db->sql_fetchrow($result);
 
-				if ( $row['user_password'] != md5($cur_password) )
-				{
+				if (!phpbb_password_verify($cur_password, $row['user_password'])) {
 					$error = TRUE;
 					$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Current_password_mismatch'];
 				}
 			}
 
-			if ( !$error )
-			{
-				$new_password = md5($new_password);
-				$passwd_sql = "user_password = '$new_password', ";
+			if ( !$error ) {
+				$new_password = phpbb_password_hash($new_password);
+				$sql_new_password = $db->sql_escape_string($new_password);
+				$passwd_sql = "user_password = '$sql_new_password', ";
 			}
 		}
-	}
-	else if ( ( empty($new_password) && !empty($password_confirm) ) || ( !empty($new_password) && empty($password_confirm) ) )
-	{
+	} else if ( ( empty($new_password) && !empty($password_confirm) ) || ( !empty($new_password) && empty($password_confirm) ) ) {
 		$error = TRUE;
 		$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Password_mismatch'];
 	}
@@ -458,8 +449,7 @@ if ( isset($HTTP_POST_VARS['Submit']) )
 
 			$row = $db->sql_fetchrow($result);
 
-			if ( $row['user_password'] != md5($cur_password) )
-			{
+			if (!phpbb_password_verify($cur_password, $row['user_password'])) {
 				$email = $userdata['user_email'];
 
 				$error = TRUE;
@@ -1190,7 +1180,7 @@ else
 		'LANGUAGE_SELECT' => language_select($user_lang, 'language'),
 		'STYLE_SELECT' => style_select($user_style, 'style'),
 		'TIMEZONE_SELECT' => tz_select($user_timezone, 'timezone'),
-		'DATE_FORMAT' => $user_dateformat,
+		'DATE_FORMAT' => htmlspecialchars($user_dateformat, ENT_QUOTES, $lang['ENCODING'], false),
 		'HTML_STATUS' => $html_status,
 		'BBCODE_STATUS' => sprintf($bbcode_status, '<a href="' . append_sid("faq.$phpEx?mode=bbcode") . '" target="_phpbbcode">', '</a>'),
 		'SMILIES_STATUS' => $smilies_status,
@@ -1251,7 +1241,7 @@ else
 		'L_PROFILE_INFO_NOTICE' => $lang['Profile_info_warn'],
 		'L_EMAIL_ADDRESS' => $lang['Email_address'],
 
-		'L_CONFIRM_CODE_IMPAIRED'	=> sprintf($lang['Confirm_code_impaired'], '<a href="mailto:' . $board_config['board_email'] . '">', '</a>'), 
+		'L_CONFIRM_CODE_IMPAIRED' => sprintf($lang['Confirm_code_impaired'], '<a href="mailto:' . htmlspecialchars($board_config['board_email'], ENT_QUOTES, $lang['ENCODING']) . '">', '</a>'),
 		'L_CONFIRM_CODE'			=> $lang['Confirm_code'], 
 		'L_CONFIRM_CODE_EXPLAIN'	=> $lang['Confirm_code_explain'], 
 

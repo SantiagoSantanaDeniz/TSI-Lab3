@@ -105,33 +105,42 @@ if( isset($HTTP_POST_VARS['login']) || isset($HTTP_GET_VARS['login']) || isset($
 					message_die(GENERAL_MESSAGE, sprintf($lang['Login_attempts_exceeded'], $board_config['max_login_attempts'], $board_config['login_reset_time']));
 				}
 
-				// Comienzo SQL-01 //
-				$sql_checkpasswd = "SELECT user_id, username, user_password, user_active, user_level, user_login_tries, user_last_login_try
-						FROM " . USERS_TABLE . "
-						WHERE username = '" . $sql_username . "' AND user_password = '" . md5($password) . "'";
-				// Fin SQL-01 //
-
-				if ( !($result_checkpasswd = $db->sql_query($sql_checkpasswd)) ) {
-					message_die(GENERAL_ERROR, 'Error in obtaining userdata', '', __LINE__, __FILE__, $sql);
-				}
-
-/* Inicio arreglo vulnerabilidad AUT-02, ID: 14, CWE-840 */
+				// Comienzo AUT-01, AUT-02 //
 				$login_user_row = $row;
-				$row = $db->sql_fetchrow($result_checkpasswd);
-				if($row && $row['user_active'] )
-				{
+				$password_valid = phpbb_password_verify($password, $row['user_password']);
+
+				if ($password_valid && $row['user_active']) {
+					if (password_needs_rehash($row['user_password'], PASSWORD_BCRYPT, array('cost' => 12))) {
+						$new_hash = phpbb_password_hash($password);
+						$sql_new_hash = $db->sql_escape_string($new_hash);
+						$sql_old_hash = $db->sql_escape_string($row['user_password']);
+						$login_user_id = (int) $row['user_id'];
+
+						$sql = "UPDATE " . USERS_TABLE . " SET user_password = '$sql_new_hash' WHERE user_id = $login_user_id AND user_password = '$sql_old_hash'";
+
+						if (!$db->sql_query($sql)) {
+							message_die(GENERAL_ERROR, 'No se pudo actualizar la contraseña.');
+						}
+
+						if (!$db->sql_affectedrows()) {
+							message_die(GENERAL_MESSAGE, 'La cuenta cambio durante el acceso. Intente nuevamente.');
+						}
+
+						$row['user_password'] = $new_hash;
+					}
+
 					$autologin = ( isset($HTTP_POST_VARS['autologin']) ) ? TRUE : 0;
 
 					$admin = (isset($HTTP_POST_VARS['admin'])) ? 1 : 0;
 		
-					// Comienzo CSRF-01
+					// Comienzo CSRF-01 //
 					$sql_previous_sid = $db->sql_escape_string($userdata['session_id']);
 
 					if (!$db->sql_query("DELETE FROM " . SESSIONS_TABLE . " WHERE session_id = '$sql_previous_sid'")) {
 						message_die(GENERAL_ERROR, 'No se pudo renovar la sesion.');
 					}
-					// Fin CSRF-01
-					
+					// Fin CSRF-01 //
+
 					$session_id = session_begin($row['user_id'], $user_ip, PAGE_INDEX, FALSE, $autologin, $admin);
 
 					// Reset login tries
@@ -148,24 +157,21 @@ if( isset($HTTP_POST_VARS['login']) || isset($HTTP_GET_VARS['login']) || isset($
 					}
 				}
 				// Only store a failed login attempt for an active user - inactive users can't login even with a correct password
-				elseif( $login_user_row['user_active'] )
-				{
+				elseif( $login_user_row['user_active'] ) {
 					// Save login tries and last login
-					if ($login_user_row['user_id'] != ANONYMOUS)
-					{
+					if ($login_user_row['user_id'] != ANONYMOUS) {
 						$sql = 'UPDATE ' . USERS_TABLE . '
 							SET user_login_tries = user_login_tries + 1, user_last_login_try = ' . time() . '
 							WHERE user_id = ' . $login_user_row['user_id'];
 						$db->sql_query($sql);
 					}
 				}
-/* Fin arreglo vulnerabilidad AUT-02, ID: 14, CWE-840 */
+				// Fin AUT-01, AUT-02 //
 
 				$redirect = ( !empty($HTTP_POST_VARS['redirect']) ) ? str_replace('&amp;', '&', htmlspecialchars($HTTP_POST_VARS['redirect'])) : '';
 				$redirect = str_replace('?', '&', $redirect);
 
-				if (strstr(urldecode($redirect), "\n") || strstr(urldecode($redirect), "\r") || strstr(urldecode($redirect), ';url'))
-				{
+				if (strstr(urldecode($redirect), "\n") || strstr(urldecode($redirect), "\r") || strstr(urldecode($redirect), ';url')) {
 					message_die(GENERAL_ERROR, 'Tried to redirect to potentially insecure url.');
 				}
 

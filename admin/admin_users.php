@@ -328,50 +328,39 @@ if ( $mode == 'edit' || $mode == 'save' && ( isset($HTTP_POST_VARS['username']) 
 		}
 
 		$passwd_sql = '';
-		if( !empty($password) && !empty($password_confirm) )
-		{
+		if( !empty($password) && !empty($password_confirm) ) {
 			//
 			// Awww, the user wants to change their password, isn't that cute..
 			//
-			if($password != $password_confirm)
-			{
+			if($password != $password_confirm) {
 				$error = TRUE;
 				$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Password_mismatch'];
+			} else {
+				$password = phpbb_password_hash($password);
+				$sql_password_hash = $db->sql_escape_string($password);
+				$passwd_sql = "user_password = '$sql_password_hash', ";
 			}
-			else
-			{
-				$password = md5($password);
-				$passwd_sql = "user_password = '$password', ";
-			}
-		}
-		else if( $password && !$password_confirm )
-		{
+		} else if( $password && !$password_confirm ) {
 			$error = TRUE;
 			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Password_mismatch'];
-		}
-		else if( !$password && $password_confirm )
-		{
+		} else if( !$password && $password_confirm ) {
 			$error = TRUE;
 			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Password_mismatch'];
 		}
 
-		if ($signature != '')
-		{
+		if ($signature != '') {
 			$sig_length_check = preg_replace('/(\[.*?)(=.*?)\]/is', '\\1]', stripslashes($signature));
-			if ( $allowhtml )
-			{
+			if ( $allowhtml ) {
 				$sig_length_check = preg_replace('/(\<.*?)(=.*?)( .*?=.*?)?([ \/]?\>)/is', '\\1\\3\\4', $sig_length_check);
 			}
 
 			// Only create a new bbcode_uid when there was no uid yet.
-			if ( $signature_bbcode_uid == '' )
-			{
+			if ( $signature_bbcode_uid == '' ) {
 				$signature_bbcode_uid = ( $allowbbcode ) ? make_bbcode_uid() : '';
 			}
 			$signature = prepare_message($signature, $allowhtml, $allowbbcode, $allowsmilies, $signature_bbcode_uid);
 
-			if ( strlen($sig_length_check) > $board_config['max_sig_chars'] )
-			{ 
+			if ( strlen($sig_length_check) > $board_config['max_sig_chars'] ) { 
 				$error = TRUE;
 				$error_msg .=  ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Signature_too_long'];
 			}
@@ -1022,7 +1011,7 @@ if ( $mode == 'edit' || $mode == 'save' && ( isset($HTTP_POST_VARS['username']) 
 			'LANGUAGE_SELECT' => language_select($user_lang),
 			'TIMEZONE_SELECT' => tz_select($user_timezone),
 			'STYLE_SELECT' => style_select($user_style, 'style'),
-			'DATE_FORMAT' => $user_dateformat,
+			'DATE_FORMAT' => htmlspecialchars($user_dateformat, ENT_QUOTES, $lang['ENCODING'], false),
 			'ALLOW_PM_YES' => ($user_allowpm) ? 'checked="checked"' : '',
 			'ALLOW_PM_NO' => (!$user_allowpm) ? 'checked="checked"' : '',
 			'ALLOW_AVATAR_YES' => ($user_allowavatar) ? 'checked="checked"' : '',
