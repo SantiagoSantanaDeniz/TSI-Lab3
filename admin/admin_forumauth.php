@@ -185,7 +185,7 @@ if( empty($forum_id) )
 	$select_list = '<select name="' . POST_FORUM_URL . '">';
 	for($i = 0; $i < count($forum_rows); $i++)
 	{
-		$select_list .= '<option value="' . $forum_rows[$i]['forum_id'] . '">' . $forum_rows[$i]['forum_name'] . '</option>';
+		$select_list .= '<option value="' . $forum_rows[$i]['forum_id'] . '">' . htmlspecialchars($forum_rows[$i]['forum_name'], ENT_QUOTES, $lang['ENCODING']) . '</option>';
 	}
 	$select_list .= '</select>';
 
@@ -302,7 +302,7 @@ else
 	$s_hidden_fields = '<input type="hidden" name="' . POST_FORUM_URL . '" value="' . $forum_id . '">';
 
 	$template->assign_vars(array(
-		'FORUM_NAME' => $forum_name,
+		'FORUM_NAME' => htmlspecialchars($forum_name, ENT_QUOTES, $lang['ENCODING']),
 
 		'L_FORUM' => $lang['Forum'], 
 		'L_AUTH_TITLE' => $lang['Auth_Control_Forum'],

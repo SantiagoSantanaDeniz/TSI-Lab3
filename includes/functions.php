@@ -212,8 +212,7 @@ function get_userdata($user, $force_str = false) {
 }
 
 
-function make_jumpbox($action, $match_forum_id = 0)
-{
+function make_jumpbox($action, $match_forum_id = 0) {
 	global $template, $userdata, $lang, $db, $nav_links, $phpEx, $SID;
 
 //	$is_auth = auth(AUTH_VIEW, AUTH_LIST_ALL, $userdata);
@@ -265,7 +264,7 @@ function make_jumpbox($action, $match_forum_id = 0)
 //					if ( $forum_rows[$j]['cat_id'] == $category_rows[$i]['cat_id'] && $is_auth[$forum_rows[$j]['forum_id']]['auth_view'] )
 //					{
 						$selected = ( $forum_rows[$j]['forum_id'] == $match_forum_id ) ? 'selected="selected"' : '';
-						$boxstring_forums .=  '<option value="' . $forum_rows[$j]['forum_id'] . '"' . $selected . '>' . $forum_rows[$j]['forum_name'] . '</option>';
+						$boxstring_forums .= '<option value="' . (int) $forum_rows[$j]['forum_id'] . '"' . $selected . '>' . htmlspecialchars($forum_rows[$j]['forum_name'], ENT_QUOTES, $lang['ENCODING']) . '</option>';
 
 						//
 						// Add an array to $nav_links for the Mozilla navigation bar.
@@ -282,7 +281,7 @@ function make_jumpbox($action, $match_forum_id = 0)
 				if ( $boxstring_forums != '' )
 				{
 					$boxstring .= '<option value="-1">&nbsp;</option>';
-					$boxstring .= '<option value="-1">' . $category_rows[$i]['cat_title'] . '</option>';
+					$boxstring .= '<option value="-1">' . htmlspecialchars($category_rows[$i]['cat_title'], ENT_QUOTES, $lang['ENCODING']) . '</option>';
 					$boxstring .= '<option value="-1">----------------</option>';
 					$boxstring .= $boxstring_forums;
 				}
@@ -374,8 +373,8 @@ function init_userprefs($userdata)
 	if ( $userdata['user_id'] != ANONYMOUS && $userdata['user_lang'] !== $default_lang )
 	{
 		$sql = 'UPDATE ' . USERS_TABLE . "
-			SET user_lang = '" . $default_lang . "'
-			WHERE user_lang = '" . $userdata['user_lang'] . "'";
+			SET user_lang = '" . $db->sql_escape_string($default_lang) . "'
+			WHERE user_lang = '" . $db->sql_escape_string($userdata['user_lang']) . "'";
 
 		if ( !($result = $db->sql_query($sql)) )
 		{
@@ -387,7 +386,7 @@ function init_userprefs($userdata)
 	elseif ( $userdata['user_id'] == ANONYMOUS && $board_config['default_lang'] !== $default_lang )
 	{
 		$sql = 'UPDATE ' . CONFIG_TABLE . "
-			SET config_value = '" . $default_lang . "'
+			SET config_value = '" . $db->sql_escape_string($default_lang) . "'
 			WHERE config_name = 'default_lang'";
 
 		if ( !($result = $db->sql_query($sql)) )
@@ -485,7 +484,7 @@ function setup_style($style)
 
 				$sql = 'UPDATE ' . USERS_TABLE . '
 					SET user_style = ' . (int) $board_config['default_style'] . "
-					WHERE user_style = $style";
+					WHERE user_style = " . (int) $style;
 				if ( !($result = $db->sql_query($sql)) )
 				{
 					message_die(CRITICAL_ERROR, 'Could not update user theme info');
@@ -502,6 +501,7 @@ function setup_style($style)
 		}
 	}
 
+	$row = phpbb_style_row($row, false);
 	$template_path = 'templates/' ;
 	$template_name = $row['template_name'] ;
 
@@ -975,15 +975,48 @@ function phpbb_purify_html($html, $allowed_elements = null) {
     return $purifiers[$cache_key]->purify($html);
 }
 
+// Password policy applies when setting a password, not when checking an existing one.
+function phpbb_password_policy_error($password, $username)
+{
+    global $lang;
+    if (!is_string($password) || !is_string($username) || strpos($password, "\0") !== false) {
+        return 'Datos de contrase&ntilde;a invalidos.';
+    }
+    $encoding = !empty($lang['ENCODING']) ? $lang['ENCODING'] : 'ISO-8859-1';
+    $length = strlen($password);
+    if (strcasecmp($encoding, 'UTF-8') === 0 || strcasecmp($encoding, 'UTF8') === 0) {
+        $length = preg_match_all('/./us', $password, $characters);
+        if ($length === false) { return 'Datos de contrase&ntilde;a invalidos.'; }
+    }
+    if ($length < 8) {
+        return 'La contrase&ntilde;a debe tener al menos 8 caracteres.';
+    }
+    if (strlen($password) > 32) {
+        return 'La contrase&ntilde;a supera la longitud permitida.';
+    }
+    $username = phpbb_decoded_text($username);
+    if (function_exists('mb_strtolower')) {
+        $matches_username = mb_strtolower($password, $encoding) === mb_strtolower($username, $encoding);
+    } else {
+        $matches_username = strcasecmp($password, $username) === 0;
+        if (strcasecmp($encoding, 'ISO-8859-1') === 0) {
+            $upper = "\xC0\xC1\xC2\xC3\xC4\xC5\xC6\xC7\xC8\xC9\xCA\xCB\xCC\xCD\xCE\xCF\xD0\xD1\xD2\xD3\xD4\xD5\xD6\xD8\xD9\xDA\xDB\xDC\xDD\xDE";
+            $lower = "\xE0\xE1\xE2\xE3\xE4\xE5\xE6\xE7\xE8\xE9\xEA\xEB\xEC\xED\xEE\xEF\xF0\xF1\xF2\xF3\xF4\xF5\xF6\xF8\xF9\xFA\xFB\xFC\xFD\xFE";
+            $matches_username = strtr(strtolower($password), $upper, $lower) === strtr(strtolower($username), $upper, $lower);
+        }
+    }
+    return $matches_username ? 'La contrase&ntilde;a debe ser distinta del nombre de usuario.' : '';
+}
+
 function phpbb_password_hash($password) {
 	if (!is_string($password) || $password === '' || strlen($password) > 72 || strpos($password, "\0") !== false) {
-		message_die(GENERAL_MESSAGE, 'Contrasena invalida o demasiado larga.');
+		message_die(GENERAL_MESSAGE, 'Contrase&ntilde;a invalida o demasiado larga.');
 	}
 
 	$hash = password_hash($password, PASSWORD_BCRYPT, array('cost' => 12));
 
 	if ($hash === false) {
-		message_die(GENERAL_ERROR, 'No se pudo proteger la contrasena.');
+		message_die(GENERAL_ERROR, 'No se pudo proteger la contrase&ntilde;a.');
 	}
 
 	return $hash;
@@ -1003,6 +1036,164 @@ function phpbb_password_verify($password, $stored_hash) {
 	}
 
 	return password_verify($password, $stored_hash);
+}
+
+// Context-specific protection for the audited SQL and HTML flows (PHP 5.6).
+function phpbb_html($value, $double_encode = true)
+{
+    global $lang;
+    $encoding = !empty($lang['ENCODING']) ? $lang['ENCODING'] : 'ISO-8859-1';
+    if ($value === null) { return ''; }
+    if (!is_scalar($value)) { return ''; }
+    return htmlspecialchars((string) $value, ENT_QUOTES, $encoding, $double_encode);
+}
+
+function phpbb_decoded_text($value)
+{
+    global $lang;
+    $encoding = !empty($lang['ENCODING']) ? $lang['ENCODING'] : 'ISO-8859-1';
+    return is_scalar($value) ? html_entity_decode((string) $value, ENT_QUOTES, $encoding) : '';
+}
+
+function phpbb_http_url($value)
+{
+    $value = trim(phpbb_decoded_text($value));
+    if ($value === '' || preg_match('/[\x00-\x20\x7f<>"\\\\]/', $value)) { return ''; }
+    $parts = @parse_url($value);
+    if (!$parts || empty($parts['host']) || empty($parts['scheme']) ||
+        !in_array(strtolower($parts['scheme']), array('http', 'https'), true)) { return ''; }
+    return $value;
+}
+
+function phpbb_asset_url($value)
+{
+    $value = trim(phpbb_decoded_text($value));
+    if ($value === '') { return ''; }
+    if (preg_match('#^https?://#i', $value)) { return phpbb_http_url($value); }
+    if (substr($value, 0, 2) === '//' || strpos($value, ':') !== false ||
+        preg_match('/[\x00-\x1f\x7f<>"\\\\]/', $value)) { return ''; }
+    return $value;
+}
+
+function phpbb_url_parameter($value)
+{
+    return rawurlencode(phpbb_decoded_text($value));
+}
+
+function phpbb_require_scalar_fields($values, $fields)
+{
+    foreach ($fields as $field) {
+        if (isset($values[$field]) && !is_string($values[$field])) {
+            message_die(GENERAL_MESSAGE, 'Datos de formulario invalidos.');
+        }
+    }
+}
+
+function phpbb_check_length($value, $maximum)
+{
+    if (!is_string($value) || strlen($value) > $maximum) {
+        message_die(GENERAL_MESSAGE, 'Un campo supera la longitud permitida.');
+    }
+}
+
+function phpbb_id_list($values)
+{
+    if (!is_array($values)) { message_die(GENERAL_MESSAGE, 'Lista de identificadores invalida.'); }
+    $ids = array();
+    foreach ($values as $value) {
+        if ((!is_string($value) && !is_int($value)) ||
+            !preg_match('/\A(?:-1|[1-9][0-9]{0,9})\z/', (string) $value) ||
+            (float) $value > 2147483647) { message_die(GENERAL_MESSAGE, 'Identificador invalido.'); }
+        $ids[] = (int) $value;
+    }
+    return $ids;
+}
+
+function phpbb_permission_map($values)
+{
+    if (!is_array($values)) { message_die(GENERAL_MESSAGE, 'Permisos invalidos.'); }
+    $result = array();
+    foreach ($values as $id => $value) {
+        if (!preg_match('/\A[1-9][0-9]{0,9}\z/', (string) $id) || (float) $id > 2147483647 ||
+            !in_array($value, array('0', '1', 0, 1), true)) {
+            message_die(GENERAL_MESSAGE, 'Permisos invalidos.');
+        }
+        $result[(int) $id] = (int) $value;
+    }
+    return $result;
+}
+
+function phpbb_message_html($message, $html_enabled)
+{
+    global $board_config;
+    if (!$html_enabled) { return phpbb_html($message, false); }
+    $allowed = preg_split('/\s*,\s*/', strtolower(trim($board_config['allow_html_tags'])), -1, PREG_SPLIT_NO_EMPTY);
+    return phpbb_purify_html($message, $allowed);
+}
+
+function phpbb_style_fields()
+{
+    return array('template_name', 'style_name', 'head_stylesheet', 'body_background',
+        'body_bgcolor', 'body_text', 'body_link', 'body_vlink', 'body_alink', 'body_hlink',
+        'tr_color1', 'tr_color2', 'tr_color3', 'tr_class1', 'tr_class2', 'tr_class3',
+        'th_color1', 'th_color2', 'th_color3', 'th_class1', 'th_class2', 'th_class3',
+        'td_color1', 'td_color2', 'td_color3', 'td_class1', 'td_class2', 'td_class3',
+        'fontface1', 'fontface2', 'fontface3', 'fontsize1', 'fontsize2', 'fontsize3',
+        'fontcolor1', 'fontcolor2', 'fontcolor3', 'span_class1', 'span_class2', 'span_class3',
+        'img_size_poll', 'img_size_privmsg');
+}
+
+function phpbb_template_name($name)
+{
+    global $phpbb_root_path;
+    if (!is_string($name) || !preg_match('/\A[a-zA-Z_][a-zA-Z0-9_]*\z/', $name) ||
+        !is_dir($phpbb_root_path . 'templates/' . $name)) {
+        message_die(GENERAL_MESSAGE, 'Plantilla invalida.');
+    }
+    return $name;
+}
+
+function phpbb_style_value($field, $value, $strict = true)
+{
+    $valid = is_string($value) || is_int($value);
+    $value = $valid ? (string) $value : '';
+    if ($field === 'template_name') {
+        if (!$strict && (!preg_match('/\A[a-zA-Z_][a-zA-Z0-9_]*\z/', $value) ||
+            !is_dir($GLOBALS['phpbb_root_path'] . 'templates/' . $value))) { return 'subSilver'; }
+        return phpbb_template_name($value);
+    }
+    if ($field === 'style_name') { $valid = $valid && strlen($value) <= 30; }
+    elseif (preg_match('/\A(?:fontsize[123]|img_size_(?:poll|privmsg))\z/', $field)) {
+        $valid = $valid && preg_match('/\A[0-9]{1,4}\z/', $value);
+        if ($valid) { return (int) $value; }
+    }
+    elseif (preg_match('/\A(?:body_(?:bgcolor|text|link|vlink|alink|hlink)|[t][rhd]_color[123]|fontcolor[123])\z/', $field)) {
+        $value = ltrim($value, '#');
+        $valid = $valid && ($value === '' || preg_match('/\A(?:[a-fA-F0-9]{3}|[a-fA-F0-9]{6})\z/', $value));
+    }
+    elseif (preg_match('/\Afontface[123]\z/', $field)) {
+        // Font family lists can contain spaces; remove optional quote wrappers.
+        $value = str_replace(array("\\'", '\\"', "'", '"'), '', $value);
+        $valid = $valid && strlen($value) <= 100 && preg_match('/\A[a-zA-Z0-9_, -]*\z/', $value);
+    }
+    else {
+        // These values occur in unquoted CSS url(...) as well as HTML attributes.
+        $valid = $valid && strlen($value) <= 255 && preg_match('/\A[a-zA-Z0-9_.\/%+\/-]*\z/', $value) &&
+            !preg_match('#(?:\A|/)\.\.(?:/|\z)#', $value) && substr($value, 0, 2) !== '//';
+    }
+    if (!$valid) {
+        if ($strict) { message_die(GENERAL_MESSAGE, 'Valor de estilo invalido.'); }
+        return preg_match('/\A(?:fontsize|img_size)/', $field) ? 0 : '';
+    }
+    return $value;
+}
+
+function phpbb_style_row($row, $strict = true)
+{
+    foreach (phpbb_style_fields() as $field) {
+        if (isset($row[$field])) { $row[$field] = phpbb_style_value($field, $row[$field], $strict); }
+    }
+    return $row;
 }
 
 ?>

@@ -325,7 +325,7 @@ else if ( $search_keywords != '' || $search_author != '' || $search_id )
 
 						if ( !strstr($multibyte_charset, $lang['ENCODING']) )
 						{
-							$match_word = str_replace('*', '%', $split_search[$i]);
+							$match_word = $db->sql_escape_string(str_replace('*', '%', $split_search[$i]));
 							$sql = "SELECT m.post_id 
 								FROM " . SEARCH_WORD_TABLE . " w, " . SEARCH_MATCH_TABLE . " m 
 								WHERE w.word_text LIKE '$match_word' 
@@ -335,7 +335,7 @@ else if ( $search_keywords != '' || $search_author != '' || $search_id )
 						}
 						else
 						{
-							$match_word =  addslashes('%' . str_replace('*', '', $split_search[$i]) . '%');
+							$match_word =  $db->sql_escape_string('%' . str_replace('*', '', $split_search[$i]) . '%');
 							$search_msg_only = ( $search_fields ) ? "OR post_subject LIKE '$match_word'" : '';
 							$sql = "SELECT post_id
 								FROM " . POSTS_TEXT_TABLE . "
@@ -704,12 +704,12 @@ else if ( $search_keywords != '' || $search_author != '' || $search_id )
 		$search_id = mt_rand();
 
 		$sql = "UPDATE " . SEARCH_TABLE . " 
-			SET search_id = $search_id, search_time = $current_time, search_array = '" . str_replace("\'", "''", $result_array) . "'
+			SET search_id = $search_id, search_time = $current_time, search_array = '" . $db->sql_escape_string($result_array) . "'
 			WHERE session_id = '" . $userdata['session_id'] . "'";
 		if ( !($result = $db->sql_query($sql)) || !$db->sql_affectedrows() )
 		{
 			$sql = "INSERT INTO " . SEARCH_TABLE . " (search_id, session_id, search_time, search_array) 
-				VALUES($search_id, '" . $userdata['session_id'] . "', $current_time, '" . str_replace("\'", "''", $result_array) . "')";
+				VALUES($search_id, '" . $userdata['session_id'] . "', $current_time, '" . $db->sql_escape_string($result_array) . "')";
 			if ( !($result = $db->sql_query($sql)) )
 			{
 				message_die(GENERAL_ERROR, 'Could not insert search results', '', __LINE__, __FILE__, $sql);
@@ -1053,7 +1053,7 @@ else if ( $search_keywords != '' || $search_author != '' || $search_id )
 				
 				$template->assign_block_vars("searchresults", array( 
 					'TOPIC_TITLE' => $topic_title,
-					'FORUM_NAME' => $searchset[$i]['forum_name'],
+					'FORUM_NAME' => htmlspecialchars($searchset[$i]['forum_name'], ENT_QUOTES, $lang['ENCODING']),
 					'POST_SUBJECT' => $post_subject,
 					'POST_DATE' => $post_date,
 					'POSTER_NAME' => $poster,
@@ -1262,7 +1262,7 @@ else if ( $search_keywords != '' || $search_author != '' || $search_id )
 				$last_post_url = '<a href="' . append_sid("viewtopic.$phpEx?"  . POST_POST_URL . '=' . $searchset[$i]['topic_last_post_id']) . '#' . $searchset[$i]['topic_last_post_id'] . '"><img src="' . $images['icon_latest_reply'] . '" alt="' . $lang['View_latest_post'] . '" title="' . $lang['View_latest_post'] . '" border="0" /></a>';
 
 				$template->assign_block_vars('searchresults', array( 
-					'FORUM_NAME' => $searchset[$i]['forum_name'],
+					'FORUM_NAME' => htmlspecialchars($searchset[$i]['forum_name'], ENT_QUOTES, $lang['ENCODING']),
 					'FORUM_ID' => $forum_id,
 					'TOPIC_ID' => $topic_id,
 					'FOLDER' => $folder_image,
@@ -1337,7 +1337,7 @@ while( $row = $db->sql_fetchrow($result) )
 {
 	if ( $is_auth_ary[$row['forum_id']]['auth_read'] )
 	{
-		$s_forums .= '<option value="' . $row['forum_id'] . '">' . $row['forum_name'] . '</option>';
+		$s_forums .= '<option value="' . $row['forum_id'] . '">' . htmlspecialchars($row['forum_name'], ENT_QUOTES, $lang['ENCODING']) . '</option>';
 		if ( empty($list_cat[$row['cat_id']]) )
 		{
 			$list_cat[$row['cat_id']] = $row['cat_title'];
@@ -1355,7 +1355,7 @@ if ( $s_forums != '' )
 	$s_categories = '<option value="-1">' . $lang['All_available'] . '</option>';
 	while( list($cat_id, $cat_title) = @each($list_cat))
 	{
-		$s_categories .= '<option value="' . $cat_id . '">' . $cat_title . '</option>';
+		$s_categories .= '<option value="' . $cat_id . '">' . htmlspecialchars($cat_title, ENT_QUOTES, $lang['ENCODING']) . '</option>';
 	}
 }
 else

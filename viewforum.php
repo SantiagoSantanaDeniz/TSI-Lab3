@@ -227,7 +227,7 @@ if ( !($result = $db->sql_query($sql)) )
 
 while( $row = $db->sql_fetchrow($result) )
 {
-	$moderators[] = '<a href="' . append_sid("groupcp.$phpEx?" . POST_GROUPS_URL . "=" . $row['group_id']) . '">' . $row['group_name'] . '</a>';
+	$moderators[] = '<a href="' . append_sid("groupcp.$phpEx?" . POST_GROUPS_URL . "=" . $row['group_id']) . '">' . phpbb_html($row['group_name'], false) . '</a>';
 }
 	
 $l_moderators = ( count($moderators) == 1 ) ? $lang['Moderator'] : $lang['Moderators'];
@@ -392,7 +392,7 @@ $nav_links['up'] = array(
 // Dump out the page header and load viewforum template
 //
 define('SHOW_ONLINE', true);
-$page_title = $lang['View_forum'] . ' - ' . $forum_row['forum_name'];
+$page_title = $lang['View_forum'] . ' - ' . htmlspecialchars($forum_row['forum_name'], ENT_QUOTES, $lang['ENCODING']);
 include($phpbb_root_path . 'includes/page_header.'.$phpEx);
 
 $template->set_filenames(array(
@@ -402,7 +402,7 @@ make_jumpbox('viewforum.'.$phpEx);
 
 $template->assign_vars(array(
 	'FORUM_ID' => $forum_id,
-	'FORUM_NAME' => $forum_row['forum_name'],
+	'FORUM_NAME' => htmlspecialchars($forum_row['forum_name'], ENT_QUOTES, $lang['ENCODING']),
 	'MODERATORS' => $forum_moderators,
 	'POST_IMG' => ( $forum_row['forum_status'] == FORUM_LOCKED ) ? $images['post_locked'] : $images['post_new'],
 

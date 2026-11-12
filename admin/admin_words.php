@@ -39,6 +39,7 @@ $cancel = (isset($HTTP_POST_VARS['cancel']) || isset($_POST['cancel'])) ? true :
 $no_page_header = $cancel;
 
 require('./pagestart.' . $phpEx);
+phpbb_require_scalar_fields($HTTP_POST_VARS, array('word', 'replacement'));
 
 if ($cancel)
 {
@@ -139,14 +140,14 @@ if( $mode != "" )
 		if( $word_id )
 		{
 			$sql = "UPDATE " . WORDS_TABLE . " 
-				SET word = '" . str_replace("\'", "''", $word) . "', replacement = '" . str_replace("\'", "''", $replacement) . "' 
+				SET word = '" . $db->sql_escape_string($word) . "', replacement = '" . $db->sql_escape_string($replacement) . "' 
 				WHERE word_id = $word_id";
 			$message = $lang['Word_updated'];
 		}
 		else
 		{
 			$sql = "INSERT INTO " . WORDS_TABLE . " (word, replacement) 
-				VALUES ('" . str_replace("\'", "''", $word) . "', '" . str_replace("\'", "''", $replacement) . "')";
+				VALUES ('" . $db->sql_escape_string($word) . "', '" . $db->sql_escape_string($replacement) . "')";
 			$message = $lang['Word_added'];
 		}
 

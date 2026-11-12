@@ -33,6 +33,7 @@ class sql_db
 	var $rowset = array();
 	var $num_queries = 0;
 	var $in_transaction = 0;
+	var $last_query_error_code = 0;
 
 	//
 	// Constructor
@@ -98,10 +99,6 @@ class sql_db
 	function sql_query($query = "", $transaction = FALSE)
 	{
 
-		// Save the query into a file (added for the SQL Injection Lab)
-                $fp = fopen('/tmp/mylog.txt', 'a') or die("can't open file");
-                fwrite($fp, "-------------------\n".$query."\n-------------------\n");
-                fclose($fp);
 
 		//
 		// Remove any pre-existing queries
@@ -122,6 +119,7 @@ class sql_db
 			}
 
 			$this->query_result = mysql_query($query, $this->db_connect_id);
+			$this->last_query_error_code = (int) mysql_errno($this->db_connect_id);
 		}
 		else
 		{

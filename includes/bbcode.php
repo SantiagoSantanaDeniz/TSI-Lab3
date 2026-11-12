@@ -773,7 +773,7 @@ function smilies_pass($message)
 		for ($i = 0; $i < count($smilies); $i++)
 		{
 			$orig[] = "/(?<=.\W|\W.|^\W)" . preg_quote($smilies[$i]['code'], "/") . "(?=.\W|\W.|\W$)/";
-			$repl[] = '<img src="'. $board_config['smilies_path'] . '/' . $smilies[$i]['smile_url'] . '" alt="' . $smilies[$i]['emoticon'] . '" border="0" />';
+			$repl[] = '<img src="'. phpbb_html(phpbb_asset_url($board_config['smilies_path'] . '/' . $smilies[$i]['smile_url'])) . '" alt="' . phpbb_html($smilies[$i]['emoticon'], false) . '" border="0" />';
 		}
 	}
 

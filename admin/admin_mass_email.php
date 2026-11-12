@@ -175,7 +175,7 @@ if ( $row = $db->sql_fetchrow($result) )
 {
 	do
 	{
-		$select_list .= '<option value = "' . $row['group_id'] . '">' . $row['group_name'] . '</option>';
+		$select_list .= '<option value = "' . $row['group_id'] . '">' . phpbb_html($row['group_name'], false) . '</option>';
 	}
 	while ( $row = $db->sql_fetchrow($result) );
 }

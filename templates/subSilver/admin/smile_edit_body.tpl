@@ -7,7 +7,7 @@
 <!--
 function update_smiley(newimage)
 {
-	document.smiley_image.src = "{S_SMILEY_BASEDIR}/" + newimage;
+	document.smiley_image.src = document.smiley_image.getAttribute("data-smiley-base") + "/" + newimage;
 }
 //-->
 </script>
@@ -22,7 +22,7 @@ function update_smiley(newimage)
 	</tr>
 	<tr>
 		<td class="row1">{L_SMILEY_URL}</td>
-		<td class="row1"><select name="smile_url" onchange="update_smiley(this.options[selectedIndex].value);">{S_FILENAME_OPTIONS}</select> &nbsp; <img name="smiley_image" src="{SMILEY_IMG}" border="0" alt="" /> &nbsp;</td>
+		<td class="row1"><select name="smile_url" onchange="update_smiley(this.options[selectedIndex].value);">{S_FILENAME_OPTIONS}</select> &nbsp; <img name="smiley_image" data-smiley-base="{S_SMILEY_BASEDIR}" src="{SMILEY_IMG}" border="0" alt="" /> &nbsp;</td>
 	</tr>
 	<tr>
 		<td class="row2">{L_SMILEY_EMOTION}</td>

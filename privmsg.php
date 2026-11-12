@@ -41,6 +41,7 @@ $html_entities_replace = array('&amp;', '&lt;', '&gt;', '&quot;');
 //
 // Parameters
 //
+phpbb_require_scalar_fields($HTTP_POST_VARS, array('username', 'subject', 'message', 'sid'));
 $submit = ( isset($HTTP_POST_VARS['post']) ) ? TRUE : 0;
 $submit_search = ( isset($HTTP_POST_VARS['usersubmit']) ) ? TRUE : 0; 
 $submit_msgdays = ( isset($HTTP_POST_VARS['submit_msgdays']) ) ? TRUE : 0;
@@ -332,7 +333,7 @@ else if ( $mode == 'read' )
 		// set limits on numbers of storable posts for users ... hopefully!
 		//
 		$sql = "INSERT $sql_priority INTO " . PRIVMSGS_TABLE . " (privmsgs_type, privmsgs_subject, privmsgs_from_userid, privmsgs_to_userid, privmsgs_date, privmsgs_ip, privmsgs_enable_html, privmsgs_enable_bbcode, privmsgs_enable_smilies, privmsgs_attach_sig)
-			VALUES (" . PRIVMSGS_SENT_MAIL . ", '" . str_replace("\'", "''", addslashes($privmsg['privmsgs_subject'])) . "', " . $privmsg['privmsgs_from_userid'] . ", " . $privmsg['privmsgs_to_userid'] . ", " . $privmsg['privmsgs_date'] . ", '" . $privmsg['privmsgs_ip'] . "', " . $privmsg['privmsgs_enable_html'] . ", " . $privmsg['privmsgs_enable_bbcode'] . ", " . $privmsg['privmsgs_enable_smilies'] . ", " .  $privmsg['privmsgs_attach_sig'] . ")";
+			VALUES (" . PRIVMSGS_SENT_MAIL . ", '" . $db->sql_escape_string($privmsg['privmsgs_subject']) . "', " . $privmsg['privmsgs_from_userid'] . ", " . $privmsg['privmsgs_to_userid'] . ", " . $privmsg['privmsgs_date'] . ", '" . $privmsg['privmsgs_ip'] . "', " . $privmsg['privmsgs_enable_html'] . ", " . $privmsg['privmsgs_enable_bbcode'] . ", " . $privmsg['privmsgs_enable_smilies'] . ", " .  $privmsg['privmsgs_attach_sig'] . ")";
 		if ( !$db->sql_query($sql) )
 		{
 			message_die(GENERAL_ERROR, 'Could not insert private message sent info', '', __LINE__, __FILE__, $sql);
@@ -341,7 +342,7 @@ else if ( $mode == 'read' )
 		$privmsg_sent_id = $db->sql_nextid();
 
 		$sql = "INSERT $sql_priority INTO " . PRIVMSGS_TEXT_TABLE . " (privmsgs_text_id, privmsgs_bbcode_uid, privmsgs_text)
-			VALUES ($privmsg_sent_id, '" . $privmsg['privmsgs_bbcode_uid'] . "', '" . str_replace("\'", "''", addslashes($privmsg['privmsgs_text'])) . "')";
+			VALUES ($privmsg_sent_id, '" . $privmsg['privmsgs_bbcode_uid'] . "', '" . $db->sql_escape_string($privmsg['privmsgs_text']) . "')";
 		if ( !$db->sql_query($sql) )
 		{
 			message_die(GENERAL_ERROR, 'Could not insert private message sent text', '', __LINE__, __FILE__, $sql);
@@ -512,14 +513,14 @@ else if ( $mode == 'read' )
 		$email = '';
 	}
 
-	$www_img = ( $privmsg['user_website'] ) ? '<a href="' . $privmsg['user_website'] . '" target="_userwww"><img src="' . $images['icon_www'] . '" alt="' . $lang['Visit_website'] . '" title="' . $lang['Visit_website'] . '" border="0" /></a>' : '';
-	$www = ( $privmsg['user_website'] ) ? '<a href="' . $privmsg['user_website'] . '" target="_userwww">' . $lang['Visit_website'] . '</a>' : '';
+	$www_img = ( $privmsg['user_website'] ) ? '<a href="' . phpbb_html(phpbb_http_url($privmsg['user_website'])) . '" target="_userwww"><img src="' . $images['icon_www'] . '" alt="' . $lang['Visit_website'] . '" title="' . $lang['Visit_website'] . '" border="0" /></a>' : '';
+	$www = ( $privmsg['user_website'] ) ? '<a href="' . phpbb_html(phpbb_http_url($privmsg['user_website'])) . '" target="_userwww">' . $lang['Visit_website'] . '</a>' : '';
 
 	if ( !empty($privmsg['user_icq']) )
 	{
-		$icq_status_img = '<a href="http://wwp.icq.com/' . $privmsg['user_icq'] . '#pager"><img src="http://web.icq.com/whitepages/online?icq=' . $privmsg['user_icq'] . '&img=5" width="18" height="18" border="0" /></a>';
-		$icq_img = '<a href="http://wwp.icq.com/scripts/search.dll?to=' . $privmsg['user_icq'] . '"><img src="' . $images['icon_icq'] . '" alt="' . $lang['ICQ'] . '" title="' . $lang['ICQ'] . '" border="0" /></a>';
-		$icq =  '<a href="http://wwp.icq.com/scripts/search.dll?to=' . $privmsg['user_icq'] . '">' . $lang['ICQ'] . '</a>';
+		$icq_status_img = '<a href="http://wwp.icq.com/' . phpbb_url_parameter($privmsg['user_icq']) . '#pager"><img src="http://web.icq.com/whitepages/online?icq=' . phpbb_url_parameter($privmsg['user_icq']) . '&img=5" width="18" height="18" border="0" /></a>';
+		$icq_img = '<a href="http://wwp.icq.com/scripts/search.dll?to=' . phpbb_url_parameter($privmsg['user_icq']) . '"><img src="' . $images['icon_icq'] . '" alt="' . $lang['ICQ'] . '" title="' . $lang['ICQ'] . '" border="0" /></a>';
+		$icq =  '<a href="http://wwp.icq.com/scripts/search.dll?to=' . phpbb_url_parameter($privmsg['user_icq']) . '">' . $lang['ICQ'] . '</a>';
 	}
 	else
 	{
@@ -528,15 +529,15 @@ else if ( $mode == 'read' )
 		$icq = '';
 	}
 
-	$aim_img = ( $privmsg['user_aim'] ) ? '<a href="aim:goim?screenname=' . $privmsg['user_aim'] . '&amp;message=Hello+Are+you+there?"><img src="' . $images['icon_aim'] . '" alt="' . $lang['AIM'] . '" title="' . $lang['AIM'] . '" border="0" /></a>' : '';
-	$aim = ( $privmsg['user_aim'] ) ? '<a href="aim:goim?screenname=' . $privmsg['user_aim'] . '&amp;message=Hello+Are+you+there?">' . $lang['AIM'] . '</a>' : '';
+	$aim_img = ( $privmsg['user_aim'] ) ? '<a href="aim:goim?screenname=' . phpbb_url_parameter($privmsg['user_aim']) . '&amp;message=Hello+Are+you+there?"><img src="' . $images['icon_aim'] . '" alt="' . $lang['AIM'] . '" title="' . $lang['AIM'] . '" border="0" /></a>' : '';
+	$aim = ( $privmsg['user_aim'] ) ? '<a href="aim:goim?screenname=' . phpbb_url_parameter($privmsg['user_aim']) . '&amp;message=Hello+Are+you+there?">' . $lang['AIM'] . '</a>' : '';
 
 	$temp_url = append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=$user_id_from");
 	$msn_img = ( $privmsg['user_msnm'] ) ? '<a href="' . $temp_url . '"><img src="' . $images['icon_msnm'] . '" alt="' . $lang['MSNM'] . '" title="' . $lang['MSNM'] . '" border="0" /></a>' : '';
 	$msn = ( $privmsg['user_msnm'] ) ? '<a href="' . $temp_url . '">' . $lang['MSNM'] . '</a>' : '';
 
-	$yim_img = ( $privmsg['user_yim'] ) ? '<a href="http://edit.yahoo.com/config/send_webmesg?.target=' . $privmsg['user_yim'] . '&amp;.src=pg"><img src="' . $images['icon_yim'] . '" alt="' . $lang['YIM'] . '" title="' . $lang['YIM'] . '" border="0" /></a>' : '';
-	$yim = ( $privmsg['user_yim'] ) ? '<a href="http://edit.yahoo.com/config/send_webmesg?.target=' . $privmsg['user_yim'] . '&amp;.src=pg">' . $lang['YIM'] . '</a>' : '';
+	$yim_img = ( $privmsg['user_yim'] ) ? '<a href="http://edit.yahoo.com/config/send_webmesg?.target=' . phpbb_url_parameter($privmsg['user_yim']) . '&amp;.src=pg"><img src="' . $images['icon_yim'] . '" alt="' . $lang['YIM'] . '" title="' . $lang['YIM'] . '" border="0" /></a>' : '';
+	$yim = ( $privmsg['user_yim'] ) ? '<a href="http://edit.yahoo.com/config/send_webmesg?.target=' . phpbb_url_parameter($privmsg['user_yim']) . '&amp;.src=pg">' . $lang['YIM'] . '</a>' : '';
 
 	$temp_url = append_sid("search.$phpEx?search_author=" . urlencode($username_from) . "&amp;showresults=posts");
 	$search_img = '<a href="' . $temp_url . '"><img src="' . $images['icon_search'] . '" alt="' . sprintf($lang['Search_user_posts'], $username_from) . '" title="' . sprintf($lang['Search_user_posts'], $username_from) . '" border="0" /></a>';
@@ -565,18 +566,9 @@ else if ( $mode == 'read' )
 	// If the board has HTML off but the post has HTML
 	// on then we process it, else leave it alone
 	//
-	if ( !$board_config['allow_html'] || !$userdata['user_allowhtml'])
-	{
-		if ( $user_sig != '')
-		{
-			$user_sig = preg_replace('#(<)([\/]?.*?)(>)#is', "&lt;\\2&gt;", $user_sig);
-		}
-
-		if ( $privmsg['privmsgs_enable_html'] )
-		{
-			$private_message = preg_replace('#(<)([\/]?.*?)(>)#is', "&lt;\\2&gt;", $private_message);
-		}
-	}
+	$pm_html_allowed = !empty($board_config['allow_html']) && !empty($userdata['user_allowhtml']) && !empty($privmsg['privmsgs_enable_html']);
+	$private_message = phpbb_message_html($private_message, $pm_html_allowed);
+	$user_sig = phpbb_message_html($user_sig, !empty($board_config['allow_html']) && !empty($userdata['user_allowhtml']));
 
 	if ( $user_sig != '' && $privmsg['privmsgs_attach_sig'] && $user_sig_bbcode_uid != '' )
 	{
@@ -611,6 +603,7 @@ else if ( $mode == 'read' )
 	}
 
 	$private_message = str_replace("\n", '<br />', $private_message);
+	$private_message = phpbb_purify_html($private_message);
 
 	//
 	// Dump it to the templating engine
@@ -621,8 +614,8 @@ else if ( $mode == 'read' )
 		'RANK_IMAGE' => $rank_image,
 		'POSTER_JOINED' => $poster_joined,
 		'POSTER_POSTS' => $poster_posts,
-		'POSTER_FROM' => $poster_from,
-		'POSTER_AVATAR' => $poster_avatar,
+		'POSTER_FROM' => phpbb_html($poster_from, false),
+		'POSTER_AVATAR' => phpbb_purify_html($poster_avatar),
 		'POST_SUBJECT' => $post_subject,
 		'POST_DATE' => $post_date, 
 		'MESSAGE' => $private_message,
@@ -1177,7 +1170,7 @@ else if ( $submit || $refresh || $mode != '' )
 
 			$sql = "SELECT user_id, user_notify_pm, user_email, user_lang, user_active 
 				FROM " . USERS_TABLE . "
-				WHERE username = '" . str_replace("\'", "''", $to_username) . "'
+				WHERE username = '" . $db->sql_escape_string($to_username) . "'
 					AND user_id <> " . ANONYMOUS;
 			if ( !($result = $db->sql_query($sql)) )
 			{
@@ -1198,6 +1191,7 @@ else if ( $submit || $refresh || $mode != '' )
 		}
 
 		$privmsg_subject = trim(htmlspecialchars($HTTP_POST_VARS['subject']));
+		phpbb_check_length($privmsg_subject, 255);
 		if ( empty($privmsg_subject) )
 		{
 			$error = TRUE;
@@ -1276,7 +1270,7 @@ else if ( $submit || $refresh || $mode != '' )
 						WHERE privmsgs_id = $old_privmsgs_id";
 					if ( !$db->sql_query($sql) )
 					{
-						message_die(GENERAL_ERROR, 'Could not delete oldest privmsgs (inbox)'.$sql, '', __LINE__, __FILE__, $sql);
+						message_die(GENERAL_ERROR, 'Could not delete oldest privmsgs (inbox)', '', __LINE__, __FILE__, $sql);
 					}
 
 					$sql = "DELETE $sql_priority FROM " . PRIVMSGS_TEXT_TABLE . " 
@@ -1289,12 +1283,12 @@ else if ( $submit || $refresh || $mode != '' )
 			}
 
 			$sql_info = "INSERT INTO " . PRIVMSGS_TABLE . " (privmsgs_type, privmsgs_subject, privmsgs_from_userid, privmsgs_to_userid, privmsgs_date, privmsgs_ip, privmsgs_enable_html, privmsgs_enable_bbcode, privmsgs_enable_smilies, privmsgs_attach_sig)
-				VALUES (" . PRIVMSGS_NEW_MAIL . ", '" . str_replace("\'", "''", $privmsg_subject) . "', " . $userdata['user_id'] . ", " . $to_userdata['user_id'] . ", $msg_time, '$user_ip', $html_on, $bbcode_on, $smilies_on, $attach_sig)";
+				VALUES (" . PRIVMSGS_NEW_MAIL . ", '" . $db->sql_escape_string($privmsg_subject) . "', " . $userdata['user_id'] . ", " . $to_userdata['user_id'] . ", $msg_time, '$user_ip', $html_on, $bbcode_on, $smilies_on, $attach_sig)";
 		}
 		else
 		{
 			$sql_info = "UPDATE " . PRIVMSGS_TABLE . "
-				SET privmsgs_type = " . PRIVMSGS_NEW_MAIL . ", privmsgs_subject = '" . str_replace("\'", "''", $privmsg_subject) . "', privmsgs_from_userid = " . $userdata['user_id'] . ", privmsgs_to_userid = " . $to_userdata['user_id'] . ", privmsgs_date = $msg_time, privmsgs_ip = '$user_ip', privmsgs_enable_html = $html_on, privmsgs_enable_bbcode = $bbcode_on, privmsgs_enable_smilies = $smilies_on, privmsgs_attach_sig = $attach_sig 
+				SET privmsgs_type = " . PRIVMSGS_NEW_MAIL . ", privmsgs_subject = '" . $db->sql_escape_string($privmsg_subject) . "', privmsgs_from_userid = " . $userdata['user_id'] . ", privmsgs_to_userid = " . $to_userdata['user_id'] . ", privmsgs_date = $msg_time, privmsgs_ip = '$user_ip', privmsgs_enable_html = $html_on, privmsgs_enable_bbcode = $bbcode_on, privmsgs_enable_smilies = $smilies_on, privmsgs_attach_sig = $attach_sig 
 				WHERE privmsgs_id = $privmsg_id";
 		}
 
@@ -1308,12 +1302,12 @@ else if ( $submit || $refresh || $mode != '' )
 			$privmsg_sent_id = $db->sql_nextid();
 
 			$sql = "INSERT INTO " . PRIVMSGS_TEXT_TABLE . " (privmsgs_text_id, privmsgs_bbcode_uid, privmsgs_text)
-				VALUES ($privmsg_sent_id, '" . $bbcode_uid . "', '" . str_replace("\'", "''", $privmsg_message) . "')";
+				VALUES ($privmsg_sent_id, '" . $bbcode_uid . "', '" . $db->sql_escape_string($privmsg_message) . "')";
 		}
 		else
 		{
 			$sql = "UPDATE " . PRIVMSGS_TEXT_TABLE . "
-				SET privmsgs_text = '" . str_replace("\'", "''", $privmsg_message) . "', privmsgs_bbcode_uid = '$bbcode_uid' 
+				SET privmsgs_text = '" . $db->sql_escape_string($privmsg_message) . "', privmsgs_bbcode_uid = '$bbcode_uid' 
 				WHERE privmsgs_text_id = $privmsg_id";
 		}
 
@@ -1575,19 +1569,14 @@ else if ( $submit || $refresh || $mode != '' )
 			$bbcode_uid = make_bbcode_uid();
 		}
 
-		$preview_message = stripslashes(prepare_message($privmsg_message, $html_on, $bbcode_on, $smilies_on, $bbcode_uid));
+		$preview_message = prepare_message($privmsg_message, $html_on, $bbcode_on, $smilies_on, $bbcode_uid);
+		$preview_message = phpbb_message_html($preview_message, $html_on && !empty($board_config['allow_html']) && !empty($userdata['user_allowhtml']));
+		$user_sig = phpbb_message_html($user_sig, !empty($board_config['allow_html']) && !empty($userdata['user_allowhtml']));
 		$privmsg_message = stripslashes(preg_replace($html_entities_match, $html_entities_replace, $privmsg_message));
 
 		//
 		// Finalise processing as per viewtopic
 		//
-		if ( !$html_on || !$board_config['allow_html'] || !$userdata['user_allowhtml'] )
-		{
-			if ( $user_sig != '' )
-			{
-				$user_sig = preg_replace('#(<)([\/]?.*?)(>)#is', "&lt;\\2&gt;", $user_sig);
-			}
-		}
 
 		if ( $attach_sig && $user_sig != '' && $userdata['user_sig_bbcode_uid'] )
 		{
@@ -1621,6 +1610,7 @@ else if ( $submit || $refresh || $mode != '' )
 
 		$preview_message = make_clickable($preview_message);
 		$preview_message = str_replace("\n", '<br />', $preview_message);
+		$preview_message = phpbb_purify_html($preview_message);
 
 		$s_hidden_fields = '<input type="hidden" name="folder" value="' . $folder . '" />';
 		$s_hidden_fields .= '<input type="hidden" name="mode" value="' . $mode . '" />';
@@ -1660,7 +1650,6 @@ else if ( $submit || $refresh || $mode != '' )
 	//
 	if ($error)
 	{
-		$privmsg_message = htmlspecialchars($privmsg_message);
 		$template->set_filenames(array(
 			'reg_header' => 'error_body.tpl')
 		);
@@ -1761,7 +1750,7 @@ else if ( $submit || $refresh || $mode != '' )
 	$template->assign_vars(array(
 		'SUBJECT' => $privmsg_subject, 
 		'USERNAME' => $to_username,
-		'MESSAGE' => $privmsg_message,
+		'MESSAGE' => phpbb_html($privmsg_message, false),
 		'HTML_STATUS' => $html_status, 
 		'SMILIES_STATUS' => $smilies_status, 
 		'BBCODE_STATUS' => sprintf($bbcode_status, '<a href="' . append_sid("faq.$phpEx?mode=bbcode") . '" target="_phpbbcode">', '</a>'), 

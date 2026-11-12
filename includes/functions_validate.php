@@ -32,10 +32,11 @@ function validate_username($username)
 	// Remove doubled up spaces
 	$username = preg_replace('#\s+#', ' ', trim($username)); 
 	$username = phpbb_clean_username($username);
+	$sql_username = $db->sql_escape_string(strtolower($username));
 
 	$sql = "SELECT username 
 		FROM " . USERS_TABLE . "
-		WHERE LOWER(username) = '" . strtolower($username) . "'";
+		WHERE LOWER(username) = '" . $sql_username . "'";
 	if ($result = $db->sql_query($sql))
 	{
 		while ($row = $db->sql_fetchrow($result))
@@ -51,7 +52,7 @@ function validate_username($username)
 
 	$sql = "SELECT group_name
 		FROM " . GROUPS_TABLE . " 
-		WHERE LOWER(group_name) = '" . strtolower($username) . "'";
+		WHERE LOWER(group_name) = '" . $sql_username . "'";
 	if ($result = $db->sql_query($sql))
 	{
 		if ($row = $db->sql_fetchrow($result))
@@ -143,7 +144,7 @@ function validate_email($email)
 
 			$sql = "SELECT user_email
 				FROM " . USERS_TABLE . "
-				WHERE user_email = '" . str_replace("\'", "''", $email) . "'";
+				WHERE user_email = '" . $db->sql_escape_string($email) . "'";
 			if (!($result = $db->sql_query($sql)))
 			{
 				message_die(GENERAL_ERROR, "Couldn't obtain user email information.", "", __LINE__, __FILE__, $sql);

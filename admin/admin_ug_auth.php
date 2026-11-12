@@ -127,6 +127,15 @@ function check_auth($type, $key, $u_access, $is_admin)
 // End Functions
 // -------------
 
+
+// Only integer forum IDs and boolean permission values may enter numeric SQL.
+$permission_inputs = array('moderator', 'private');
+foreach ($forum_auth_fields as $permission_name) { $permission_inputs[] = 'private_' . $permission_name; }
+foreach ($permission_inputs as $permission_input) {
+    $HTTP_POST_VARS[$permission_input] = isset($HTTP_POST_VARS[$permission_input])
+        ? phpbb_permission_map($HTTP_POST_VARS[$permission_input]) : array();
+}
+
 if ( isset($HTTP_POST_VARS['submit']) && ( ( $mode == 'user' && $user_id ) || ( $mode == 'group' && $group_id ) ) )
 {
 	$user_level = '';
@@ -819,7 +828,7 @@ else if ( ( $mode == 'user' && ( isset($HTTP_POST_VARS['username']) || $user_id 
 		$template->assign_block_vars('forums', array(
 			'ROW_COLOR' => '#' . $row_color,
 			'ROW_CLASS' => $row_class,
-			'FORUM_NAME' => $forum_access[$i]['forum_name'],
+			'FORUM_NAME' => htmlspecialchars($forum_access[$i]['forum_name'], ENT_QUOTES, $lang['ENCODING']),
 
 			'U_FORUM_AUTH' => append_sid("admin_forumauth.$phpEx?f=" . $forum_access[$i]['forum_id']),
 
@@ -848,12 +857,12 @@ else if ( ( $mode == 'user' && ( isset($HTTP_POST_VARS['username']) || $user_id 
 	
 	if ( $mode == 'user' )
 	{
-		$t_username = $ug_info[0]['username'];
+		$t_username = phpbb_html($ug_info[0]['username'], false);
 		$s_user_type = ( $is_admin ) ? '<select name="userlevel"><option value="admin" selected="selected">' . $lang['Auth_Admin'] . '</option><option value="user">' . $lang['Auth_User'] . '</option></select>' : '<select name="userlevel"><option value="admin">' . $lang['Auth_Admin'] . '</option><option value="user" selected="selected">' . $lang['Auth_User'] . '</option></select>';
 	}
 	else
 	{
-		$t_groupname = $ug_info[0]['group_name'];
+		$t_groupname = phpbb_html($ug_info[0]['group_name'], false);
 	}
 
 	$name = array();
@@ -876,11 +885,11 @@ else if ( ( $mode == 'user' && ( isset($HTTP_POST_VARS['username']) || $user_id 
 
 			if (!$ug_info[$i]['user_pending'])
 			{
-				$t_usergroup_list .= ( ( $t_usergroup_list != '' ) ? ', ' : '' ) . '<a href="' . append_sid("admin_ug_auth.$phpEx?mode=$ug=" . $id[$i]) . '">' . $name[$i] . '</a>';
+				$t_usergroup_list .= ( ( $t_usergroup_list != '' ) ? ', ' : '' ) . '<a href="' . append_sid("admin_ug_auth.$phpEx?mode=$ug=" . $id[$i]) . '">' . phpbb_html($name[$i], false) . '</a>';
 			}
 			else
 			{
-				$t_pending_list .= ( ( $t_pending_list != '' ) ? ', ' : '' ) . '<a href="' . append_sid("admin_ug_auth.$phpEx?mode=$ug=" . $id[$i]) . '">' . $name[$i] . '</a>';
+				$t_pending_list .= ( ( $t_pending_list != '' ) ? ', ' : '' ) . '<a href="' . append_sid("admin_ug_auth.$phpEx?mode=$ug=" . $id[$i]) . '">' . phpbb_html($name[$i], false) . '</a>';
 			}
 		}
 	}
@@ -1000,7 +1009,7 @@ else
 			$select_list = '<select name="' . POST_GROUPS_URL . '">';
 			do
 			{
-				$select_list .= '<option value="' . $row['group_id'] . '">' . $row['group_name'] . '</option>';
+				$select_list .= '<option value="' . $row['group_id'] . '">' . phpbb_html($row['group_name'], false) . '</option>';
 			}
 			while ( $row = $db->sql_fetchrow($result) );
 			$select_list .= '</select>';

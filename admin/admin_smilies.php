@@ -176,7 +176,7 @@ if( isset($HTTP_GET_VARS['import_pack']) || isset($HTTP_POST_VARS['import_pack']
 
 		for( $i = 0; $i < count($fcontents); $i++ )
 		{
-			$smile_data = explode($delimeter, trim(addslashes($fcontents[$i])));
+			$smile_data = explode($delimeter, trim($fcontents[$i]));
 
 			for( $j = 2; $j < count($smile_data); $j++)
 			{
@@ -305,7 +305,7 @@ else if( isset($HTTP_POST_VARS['add']) || isset($HTTP_GET_VARS['add']) )
 	$filename_list = "";
 	for( $i = 0; $i < count($smiley_images); $i++ )
 	{
-		$filename_list .= '<option value="' . $smiley_images[$i] . '">' . $smiley_images[$i] . '</option>';
+		$filename_list .= '<option value="' . $smiley_images[$i] . '">' . phpbb_html($smiley_images[$i]) . '</option>';
 	}
 
 	$s_hidden_fields = '<input type="hidden" name="mode" value="savenew" />';
@@ -325,7 +325,7 @@ else if( isset($HTTP_POST_VARS['add']) || isset($HTTP_GET_VARS['add']) )
 		"S_SMILEY_ACTION" => append_sid("admin_smilies.$phpEx"), 
 		"S_HIDDEN_FIELDS" => $s_hidden_fields, 
 		"S_FILENAME_OPTIONS" => $filename_list, 
-		"S_SMILEY_BASEDIR" => $phpbb_root_path . $board_config['smilies_path'])
+		"S_SMILEY_BASEDIR" => phpbb_html($phpbb_root_path . $board_config['smilies_path']))
 	);
 
 	$template->pparse("body");
@@ -407,7 +407,7 @@ else if ( $mode != "" )
 					$smiley_selected = "";
 				}
 
-				$filename_list .= '<option value="' . $smiley_images[$i] . '"' . $smiley_selected . '>' . $smiley_images[$i] . '</option>';
+				$filename_list .= '<option value="' . phpbb_html($smiley_images[$i]) . '"' . $smiley_selected . '>' . phpbb_html($smiley_images[$i]) . '</option>';
 			}
 
 			$template->set_filenames(array("body" => "admin/smile_edit_body.tpl"));
@@ -432,7 +432,7 @@ else if ( $mode != "" )
 				"S_SMILEY_ACTION" => append_sid("admin_smilies.$phpEx"),
 				"S_HIDDEN_FIELDS" => $s_hidden_fields, 
 				"S_FILENAME_OPTIONS" => $filename_list, 
-				"S_SMILEY_BASEDIR" => $phpbb_root_path . $board_config['smilies_path'])
+				"S_SMILEY_BASEDIR" => phpbb_html($phpbb_root_path . $board_config['smilies_path']))
 			);
 
 			$template->pparse("body");

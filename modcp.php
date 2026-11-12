@@ -519,7 +519,7 @@ switch( $mode )
 					{
 						// Insert topic in the old forum that indicates that the forum has moved.
 						$sql = "INSERT INTO " . TOPICS_TABLE . " (forum_id, topic_title, topic_poster, topic_time, topic_status, topic_type, topic_vote, topic_views, topic_replies, topic_first_post_id, topic_last_post_id, topic_moved_id)
-							VALUES ($old_forum_id, '" . addslashes(str_replace("\'", "''", $row[$i]['topic_title'])) . "', '" . str_replace("\'", "''", $row[$i]['topic_poster']) . "', " . $row[$i]['topic_time'] . ", " . TOPIC_MOVED . ", " . POST_NORMAL . ", " . $row[$i]['topic_vote'] . ", " . $row[$i]['topic_views'] . ", " . $row[$i]['topic_replies'] . ", " . $row[$i]['topic_first_post_id'] . ", " . $row[$i]['topic_last_post_id'] . ", $topic_id)";
+							VALUES ($old_forum_id, '" . $db->sql_escape_string($row[$i]['topic_title']) . "', '" . $db->sql_escape_string($row[$i]['topic_poster']) . "', " . $row[$i]['topic_time'] . ", " . TOPIC_MOVED . ", " . POST_NORMAL . ", " . $row[$i]['topic_vote'] . ", " . $row[$i]['topic_views'] . ", " . $row[$i]['topic_replies'] . ", " . $row[$i]['topic_first_post_id'] . ", " . $row[$i]['topic_last_post_id'] . ", $topic_id)";
 						if ( !$db->sql_query($sql) )
 						{
 							message_die(GENERAL_ERROR, 'Could not insert shadow topic', '', __LINE__, __FILE__, $sql);
@@ -801,7 +801,7 @@ switch( $mode )
 				$db->sql_freeresult($result);
 
 				$sql  = "INSERT INTO " . TOPICS_TABLE . " (topic_title, topic_poster, topic_time, forum_id, topic_status, topic_type)
-					VALUES ('" . str_replace("\'", "''", $post_subject) . "', $first_poster, " . $topic_time . ", $new_forum_id, " . TOPIC_UNLOCKED . ", " . POST_NORMAL . ")";
+					VALUES ('" . $db->sql_escape_string($post_subject) . "', $first_poster, " . $topic_time . ", $new_forum_id, " . TOPIC_UNLOCKED . ", " . POST_NORMAL . ")";
 				if (!($db->sql_query($sql, BEGIN_TRANSACTION)))
 				{
 					message_die(GENERAL_ERROR, 'Could not insert new topic', '', __LINE__, __FILE__, $sql);
@@ -886,7 +886,7 @@ switch( $mode )
 					'L_UNMARK_ALL' => $lang['Unmark_all'], 
 					'L_POST' => $lang['Post'], 
 
-					'FORUM_NAME' => $forum_name, 
+					'FORUM_NAME' => htmlspecialchars($forum_name, ENT_QUOTES, $lang['ENCODING']), 
 
 					'U_VIEW_FORUM' => append_sid("viewforum.$phpEx?" . POST_FORUM_URL . "=$forum_id"), 
 
@@ -918,13 +918,7 @@ switch( $mode )
 					// If the board has HTML off but the post has HTML
 					// on then we process it, else leave it alone
 					//
-					if ( !$board_config['allow_html'] )
-					{
-						if ( $postrow[$i]['enable_html'] )
-						{
-							$message = preg_replace('#(<)([\/]?.*?)(>)#is', '&lt;\\2&gt;', $message);
-						}
-					}
+					$message = phpbb_message_html($message, !empty($board_config['allow_html']) && !empty($userdata['user_allowhtml']) && !empty($postrow[$i]['enable_html']));
 
 					if ( $bbcode_uid != '' )
 					{
@@ -945,6 +939,7 @@ switch( $mode )
 					}
 
 					$message = str_replace("\n", '<br />', $message);
+					$message = phpbb_purify_html($message);
 					
 					$row_color = ( !($i % 2) ) ? $theme['td_color1'] : $theme['td_color2'];
 					$row_class = ( !($i % 2) ) ? $theme['td_class1'] : $theme['td_class2'];
@@ -1118,7 +1113,7 @@ switch( $mode )
 		include($phpbb_root_path . 'includes/page_header.'.$phpEx);
 
 		$template->assign_vars(array(
-			'FORUM_NAME' => $forum_name,
+			'FORUM_NAME' => htmlspecialchars($forum_name, ENT_QUOTES, $lang['ENCODING']),
 
 			'L_MOD_CP' => $lang['Mod_CP'],
 			'L_MOD_CP_EXPLAIN' => $lang['Mod_CP_explain'],

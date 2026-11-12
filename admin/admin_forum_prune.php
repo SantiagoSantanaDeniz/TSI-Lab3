@@ -104,7 +104,7 @@ if( isset($HTTP_POST_VARS['doprune']) )
 		$template->assign_block_vars('prune_results', array(
 			'ROW_COLOR' => '#' . $row_color, 
 			'ROW_CLASS' => $row_class, 
-			'FORUM_NAME' => $forum_rows[$i]['forum_name'],
+			'FORUM_NAME' => htmlspecialchars($forum_rows[$i]['forum_name'], ENT_QUOTES, $lang['ENCODING']),
 			'FORUM_TOPICS' => $p_result['topics'],
 			'FORUM_POSTS' => $p_result['posts'])
 		);
@@ -138,7 +138,7 @@ else
 
 		for($i = 0; $i < count($forum_rows); $i++)
 		{
-			$select_list .= '<option value="' . $forum_rows[$i]['forum_id'] . '">' . $forum_rows[$i]['forum_name'] . '</option>';
+			$select_list .= '<option value="' . $forum_rows[$i]['forum_id'] . '">' . htmlspecialchars($forum_rows[$i]['forum_name'], ENT_QUOTES, $lang['ENCODING']) . '</option>';
 		}
 		$select_list .= '</select>';
 
@@ -176,7 +176,7 @@ else
 		// Assign the template variables.
 		//
 		$template->assign_vars(array(
-			'FORUM_NAME' => $forum_name,
+			'FORUM_NAME' => htmlspecialchars($forum_name, ENT_QUOTES, $lang['ENCODING']),
 
 			'L_FORUM' => $lang['Forum'], 
 			'L_FORUM_PRUNE' => $lang['Forum_Prune'], 

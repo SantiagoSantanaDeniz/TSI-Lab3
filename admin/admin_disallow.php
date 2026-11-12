@@ -36,6 +36,7 @@ if( !empty($setmodules) )
 $phpbb_root_path = "./../";
 require($phpbb_root_path . 'extension.inc');
 require('./pagestart.' . $phpEx);
+phpbb_require_scalar_fields($HTTP_POST_VARS, array('disallowed_user'));
 
 if( isset($HTTP_POST_VARS['add_name']) )
 {
@@ -47,14 +48,15 @@ if( isset($HTTP_POST_VARS['add_name']) )
 	{
 		message_die(GENERAL_MESSAGE, $lang['Fields_empty']);
 	}
-	if( !validate_username($disallowed_user) )
+	$disallowed_validation = validate_username($disallowed_user);
+	if ($disallowed_validation['error'])
 	{
 		$message = $lang['Disallowed_already'];
 	}
 	else
 	{
 		$sql = "INSERT INTO " . DISALLOW_TABLE . " (disallow_username) 
-			VALUES('" . str_replace("\'", "''", $disallowed_user) . "')";
+			VALUES('" . $db->sql_escape_string($disallowed_user) . "')";
 		$result = $db->sql_query( $sql );
 		if ( !$result )
 		{
@@ -104,7 +106,7 @@ $disallowed = $db->sql_fetchrowset($result);
 //
 $disallow_select = '<select name="disallowed_id">';
 
-if( trim($disallowed) == "" )
+if( empty($disallowed) )
 {
 	$disallow_select .= '<option value="">' . $lang['no_disallowed'] . '</option>';
 }
@@ -113,7 +115,7 @@ else
 	$user = array();
 	for( $i = 0; $i < count($disallowed); $i++ )
 	{
-		$disallow_select .= '<option value="' . $disallowed[$i]['disallow_id'] . '">' . $disallowed[$i]['disallow_username'] . '</option>';
+		$disallow_select .= '<option value="' . $disallowed[$i]['disallow_id'] . '">' . phpbb_html($disallowed[$i]['disallow_username']) . '</option>';
 	}
 }
 

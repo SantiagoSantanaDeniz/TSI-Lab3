@@ -38,6 +38,7 @@ $cancel = ( isset($HTTP_POST_VARS['cancel']) || isset($_POST['cancel']) ) ? true
 $no_page_header = $cancel;
 
 require('./pagestart.' . $phpEx);
+phpbb_require_scalar_fields($HTTP_POST_VARS, array('title', 'rank_image'));
 
 if ($cancel)
 {
@@ -115,12 +116,12 @@ if( $mode != "" )
 		);
 
 		$template->assign_vars(array(
-			"RANK" => $rank_info['rank_title'],
+			"RANK" => phpbb_html($rank_info['rank_title']),
 			"SPECIAL_RANK" => $rank_is_special,
 			"NOT_SPECIAL_RANK" => $rank_is_not_special,
 			"MINIMUM" => ( $rank_is_special ) ? "" : $rank_info['rank_min'],
-			"IMAGE" => ( $rank_info['rank_image'] != "" ) ? $rank_info['rank_image'] : "",
-			"IMAGE_DISPLAY" => ( $rank_info['rank_image'] != "" ) ? '<img src="../' . $rank_info['rank_image'] . '" />' : "",
+			"IMAGE" => ( $rank_info['rank_image'] != "" ) ? phpbb_html($rank_info['rank_image']) : "",
+			"IMAGE_DISPLAY" => ( $rank_info['rank_image'] != "" ) ? '<img src="' . phpbb_html(phpbb_asset_url('../' . $rank_info['rank_image'])) . '" />' : "",
 			
 			"L_RANKS_TITLE" => $lang['Ranks_title'],
 			"L_RANKS_TEXT" => $lang['Ranks_explain'],
@@ -187,7 +188,7 @@ if( $mode != "" )
 				}
 			}
 			$sql = "UPDATE " . RANKS_TABLE . "
-				SET rank_title = '" . str_replace("\'", "''", $rank_title) . "', rank_special = $special_rank, rank_min = $min_posts, rank_image = '" . str_replace("\'", "''", $rank_image) . "'
+				SET rank_title = '" . $db->sql_escape_string($rank_title) . "', rank_special = $special_rank, rank_min = $min_posts, rank_image = '" . $db->sql_escape_string($rank_image) . "'
 				WHERE rank_id = $rank_id";
 
 			$message = $lang['Rank_updated'];
@@ -195,7 +196,7 @@ if( $mode != "" )
 		else
 		{
 			$sql = "INSERT INTO " . RANKS_TABLE . " (rank_title, rank_special, rank_min, rank_image)
-				VALUES ('" . str_replace("\'", "''", $rank_title) . "', $special_rank, $min_posts, '" . str_replace("\'", "''", $rank_image) . "')";
+				VALUES ('" . $db->sql_escape_string($rank_title) . "', $special_rank, $min_posts, '" . $db->sql_escape_string($rank_image) . "')";
 
 			$message = $lang['Rank_added'];
 		}
@@ -333,7 +334,7 @@ for($i = 0; $i < $rank_count; $i++)
 	$template->assign_block_vars("ranks", array(
 		"ROW_COLOR" => "#" . $row_color,
 		"ROW_CLASS" => $row_class,
-		"RANK" => $rank,
+		"RANK" => phpbb_html($rank),
 		"SPECIAL_RANK" => $rank_is_special,
 		"RANK_MIN" => $rank_min,
 

@@ -307,7 +307,7 @@ function storeCaret(textEl) {
 				<!-- BEGIN smilies_row -->
 				<tr align="center" valign="middle"> 
 				  <!-- BEGIN smilies_col -->
-				  <td><a href="javascript:emoticon('{smilies_row.smilies_col.SMILEY_CODE}')"><img src="{smilies_row.smilies_col.SMILEY_IMG}" border="0" alt="{smilies_row.smilies_col.SMILEY_DESC}" title="{smilies_row.smilies_col.SMILEY_DESC}" /></a></td>
+				  <td><a href="#" data-smiley-code="{smilies_row.smilies_col.SMILEY_CODE}" onclick="emoticon(this.getAttribute('data-smiley-code'));return false;"><img src="{smilies_row.smilies_col.SMILEY_IMG}" border="0" alt="{smilies_row.smilies_col.SMILEY_DESC}" title="{smilies_row.smilies_col.SMILEY_DESC}" /></a></td>
 				  <!-- END smilies_col -->
 				</tr>
 				<!-- END smilies_row -->

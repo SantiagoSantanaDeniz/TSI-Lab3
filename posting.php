@@ -1025,7 +1025,7 @@ $template->set_filenames(array(
 make_jumpbox('viewforum.'.$phpEx);
 
 $template->assign_vars(array(
-	'FORUM_NAME' => $forum_name,
+	'FORUM_NAME' => htmlspecialchars($forum_name, ENT_QUOTES, $lang['ENCODING']),
 	'L_POST_A' => $page_title,
 	'L_POST_SUBJECT' => $lang['Post_subject'], 
 

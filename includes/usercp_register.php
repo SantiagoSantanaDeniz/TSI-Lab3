@@ -307,6 +307,8 @@ if ($mode == 'register' && ($userdata['session_logged_in'] || $username == $user
 
 if ( isset($HTTP_POST_VARS['Submit']) )
 {
+	phpbb_check_length($username, 25);
+	phpbb_check_length($user_dateformat, 14);
 	include($phpbb_root_path . 'includes/usercp_avatar.'.$phpEx);
 
 	// session id check
@@ -385,6 +387,8 @@ if ( isset($HTTP_POST_VARS['Submit']) )
 		}
 	}
 
+	$password_username = ($mode == 'editprofile' && !$board_config['allow_namechange']) ? $userdata['username'] : $username;
+	$password_policy_error = phpbb_password_policy_error($new_password, $password_username);
 	$passwd_sql = '';
 	if ( !empty($new_password) && !empty($password_confirm) )
 	{
@@ -392,9 +396,9 @@ if ( isset($HTTP_POST_VARS['Submit']) )
 		{
 			$error = TRUE;
 			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Password_mismatch'];
-		} else if ( strlen($new_password) > 32 ) {
+		} else if ( $password_policy_error !== '' ) {
 			$error = TRUE;
-			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Password_long'];
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $password_policy_error;
 		} else {
 			if ( $mode == 'editprofile' ) {
 				$sql = "SELECT user_password
@@ -480,7 +484,7 @@ if ( isset($HTTP_POST_VARS['Submit']) )
 
 			if (!$error)
 			{
-				$username_sql = "username = '" . str_replace("\'", "''", $username) . "', ";
+				$username_sql = "username = '" . $db->sql_escape_string($username) . "', ";
 			}
 		}
 	}
@@ -739,30 +743,64 @@ if ( isset($HTTP_POST_VARS['Submit']) )
 			//
 			// Get current date
 			//
-			$sql = "INSERT INTO " . USERS_TABLE . "	(user_id, username, user_regdate, user_password, user_email, user_icq, user_website, user_occ, user_from, user_interests, user_sig, user_sig_bbcode_uid, user_avatar, user_avatar_type, user_viewemail, user_aim, user_yim, user_msnm, user_attachsig, user_allowsmile, user_allowhtml, user_allowbbcode, user_allow_viewonline, user_notify, user_notify_pm, user_popup_pm, user_timezone, user_dateformat, user_lang, user_style, user_level, user_allow_pm, user_active, user_actkey)
-				VALUES ($user_id, '" . str_replace("\'", "''", $username) . "', " . time() . ", '" . str_replace("\'", "''", $new_password) . "', '" . str_replace("\'", "''", $email) . "', '" . str_replace("\'", "''", $icq) . "', '" . str_replace("\'", "''", $website) . "', '" . str_replace("\'", "''", $occupation) . "', '" . str_replace("\'", "''", $location) . "', '" . str_replace("\'", "''", $interests) . "', '" . str_replace("\'", "''", $signature) . "', '$signature_bbcode_uid', $avatar_sql, $viewemail, '" . str_replace("\'", "''", str_replace(' ', '+', $aim)) . "', '" . str_replace("\'", "''", $yim) . "', '" . str_replace("\'", "''", $msn) . "', $attachsig, $allowsmilies, $allowhtml, $allowbbcode, $allowviewonline, $notifyreply, $notifypm, $popup_pm, $user_timezone, '" . str_replace("\'", "''", $user_dateformat) . "', '" . str_replace("\'", "''", $user_lang) . "', $user_style, 0, 1, ";
-			if ( $board_config['require_activation'] == USER_ACTIVATION_SELF || $board_config['require_activation'] == USER_ACTIVATION_ADMIN || $coppa )
-			{
+			$sql = "INSERT INTO " . USERS_TABLE . "
+				(user_id, username, user_regdate, user_password, user_email,
+				user_icq, user_website, user_occ, user_from, user_interests,
+				user_sig, user_sig_bbcode_uid, user_avatar, user_avatar_type,
+				user_viewemail, user_aim, user_yim, user_msnm, user_attachsig,
+				user_allowsmile, user_allowhtml, user_allowbbcode, user_allow_viewonline,
+				user_notify, user_notify_pm, user_popup_pm, user_timezone,
+				user_dateformat, user_lang, user_style, user_level, user_allow_pm,
+				user_active, user_actkey)
+				VALUES (
+					" . (int) $user_id . ",
+					'" . $db->sql_escape_string($username) . "',
+					" . time() . ",
+					'" . $db->sql_escape_string($new_password) . "',
+					'" . $db->sql_escape_string($email) . "',
+					'" . $db->sql_escape_string($icq) . "',
+					'" . $db->sql_escape_string($website) . "',
+					'" . $db->sql_escape_string($occupation) . "',
+					'" . $db->sql_escape_string($location) . "',
+					'" . $db->sql_escape_string($interests) . "',
+					'" . $db->sql_escape_string($signature) . "',
+					'" . $db->sql_escape_string($signature_bbcode_uid) . "',
+					" . $avatar_sql . ",
+					" . (int) $viewemail . ",
+					'" . $db->sql_escape_string(str_replace(' ', '+', $aim)) . "',
+					'" . $db->sql_escape_string($yim) . "',
+					'" . $db->sql_escape_string($msn) . "',
+					" . (int) $attachsig . ",
+					" . (int) $allowsmilies . ",
+					" . (int) $allowhtml . ",
+					" . (int) $allowbbcode . ",
+					" . (int) $allowviewonline . ",
+					" . (int) $notifyreply . ",
+					" . (int) $notifypm . ",
+					" . (int) $popup_pm . ",
+					" . str_replace(',', '.', sprintf('%.10F', (float) $user_timezone)) . ",
+					'" . $db->sql_escape_string($user_dateformat) . "',
+					'" . $db->sql_escape_string($user_lang) . "',
+					" . (int) $user_style . ",
+					0, 1, ";
+			
+			if ( $board_config['require_activation'] == USER_ACTIVATION_SELF || $board_config['require_activation'] == USER_ACTIVATION_ADMIN || $coppa ) {
 				$user_actkey = gen_rand_string(true);
 				$key_len = 54 - (strlen($server_url));
 				$key_len = ( $key_len > 6 ) ? $key_len : 6;
 				$user_actkey = substr($user_actkey, 0, $key_len);
-				$sql .= "0, '" . str_replace("\'", "''", $user_actkey) . "')";
-			}
-			else
-			{
+				$sql .= "0, '" . $db->sql_escape_string($user_actkey) . "')";
+			} else {
 				$sql .= "1, '')";
 			}
 
-			if ( !($result = $db->sql_query($sql, BEGIN_TRANSACTION)) )
-			{
-				message_die(GENERAL_ERROR, 'Could not insert data into users table', '', __LINE__, __FILE__, $sql);
+			if (!($result = $db->sql_query($sql, BEGIN_TRANSACTION))) {
+				message_die(GENERAL_ERROR, 'No se pudo registrar la cuenta.');
 			}
 
 			$sql = "INSERT INTO " . GROUPS_TABLE . " (group_name, group_description, group_single_user, group_moderator)
 				VALUES ('', 'Personal User', 1, 0)";
-			if ( !($result = $db->sql_query($sql)) )
-			{
+			if ( !($result = $db->sql_query($sql)) ) {
 				message_die(GENERAL_ERROR, 'Could not insert data into groups table', '', __LINE__, __FILE__, $sql);
 			}
 
@@ -1155,7 +1193,7 @@ else
 		'INTERESTS' => $interests,
 		'LOCATION' => $location,
 		'WEBSITE' => $website,
-		'SIGNATURE' => str_replace('<br />', "\n", $signature),
+		'SIGNATURE' => phpbb_html(str_replace('<br />', "\n", $signature)),
 		'VIEW_EMAIL_YES' => ( $viewemail ) ? 'checked="checked"' : '',
 		'VIEW_EMAIL_NO' => ( !$viewemail ) ? 'checked="checked"' : '',
 		'HIDE_USER_YES' => ( !$allowviewonline ) ? 'checked="checked"' : '',

@@ -129,9 +129,9 @@ function add_search_words($mode, $post_id, $post_text, $post_title = '')
 				if( $search_matches[$i] != '' ) 
 				{
 					$word[] = $search_matches[$i];
-					if ( !strstr($word_insert_sql[$word_in], "'" . $search_matches[$i] . "'") )
+					if ( !strstr($word_insert_sql[$word_in], "'" . $db->sql_escape_string($search_matches[$i]) . "'") )
 					{
-						$word_insert_sql[$word_in] .= ( $word_insert_sql[$word_in] != "" ) ? ", '" . $search_matches[$i] . "'" : "'" . $search_matches[$i] . "'";
+						$word_insert_sql[$word_in] .= ( $word_insert_sql[$word_in] != "" ) ? ", '" . $search_matches[$i] . "'" : "'" . $db->sql_escape_string($search_matches[$i]) . "'";
 					}
 				} 
 			}
@@ -150,7 +150,7 @@ function add_search_words($mode, $post_id, $post_text, $post_title = '')
 			if ( $word[$i] != $prev_word )
 			{
 				$temp_word[] = $word[$i];
-				$word_text_sql .= ( ( $word_text_sql != '' ) ? ', ' : '' ) . "'" . $word[$i] . "'";
+				$word_text_sql .= ( ( $word_text_sql != '' ) ? ', ' : '' ) . "'" . $db->sql_escape_string($word[$i]) . "'";
 			}
 			$prev_word = $word[$i];
 		}
@@ -195,15 +195,15 @@ function add_search_words($mode, $post_id, $post_text, $post_title = '')
 				{
 					case 'mysql':
 					case 'mysql4':
-						$value_sql .= ( ( $value_sql != '' ) ? ', ' : '' ) . '(\'' . $word[$i] . '\', 0)';
+						$value_sql .= ( ( $value_sql != '' ) ? ', ' : '' ) . '(\'' . $db->sql_escape_string($word[$i]) . '\', 0)';
 						break;
 					case 'mssql':
 					case 'mssql-odbc':
-						$value_sql .= ( ( $value_sql != '' ) ? ' UNION ALL ' : '' ) . "SELECT '" . $word[$i] . "', 0";
+						$value_sql .= ( ( $value_sql != '' ) ? ' UNION ALL ' : '' ) . "SELECT '" . $db->sql_escape_string($word[$i]) . "', 0";
 						break;
 					default:
 						$sql = "INSERT INTO " . SEARCH_WORD_TABLE . " (word_text, word_common) 
-							VALUES ('" . $word[$i] . "', 0)"; 
+							VALUES ('" . $db->sql_escape_string($word[$i]) . "', 0)"; 
 						if( !$db->sql_query($sql) )
 						{
 							message_die(GENERAL_ERROR, 'Could not insert new word', '', __LINE__, __FILE__, $sql);

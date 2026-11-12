@@ -31,7 +31,7 @@ function generate_user_info(&$row, $date_format, $group_mod, &$from, &$posts, &$
 {
 	global $lang, $images, $board_config, $phpEx;
 
-	$from = ( !empty($row['user_from']) ) ? $row['user_from'] : '&nbsp;';
+	$from = ( !empty($row['user_from']) ) ? phpbb_html($row['user_from'], false) : '&nbsp;';
 	$joined = create_date($date_format, $row['user_regdate'], $board_config['board_timezone']);
 	$posts = ( $row['user_posts'] ) ? $row['user_posts'] : 0;
 
@@ -41,13 +41,13 @@ function generate_user_info(&$row, $date_format, $group_mod, &$from, &$posts, &$
 		switch( $row['user_avatar_type'] )
 		{
 			case USER_AVATAR_UPLOAD:
-				$poster_avatar = ( $board_config['allow_avatar_upload'] ) ? '<img src="' . $board_config['avatar_path'] . '/' . $row['user_avatar'] . '" alt="" border="0" />' : '';
+				$poster_avatar = ( $board_config['allow_avatar_upload'] ) ? '<img src="' . $board_config['avatar_path'] . '/' . phpbb_html(phpbb_asset_url($row['user_avatar'])) . '" alt="" border="0" />' : '';
 				break;
 			case USER_AVATAR_REMOTE:
-				$poster_avatar = ( $board_config['allow_avatar_remote'] ) ? '<img src="' . $row['user_avatar'] . '" alt="" border="0" />' : '';
+				$poster_avatar = ( $board_config['allow_avatar_remote'] ) ? '<img src="' . phpbb_html(phpbb_asset_url($row['user_avatar'])) . '" alt="" border="0" />' : '';
 				break;
 			case USER_AVATAR_GALLERY:
-				$poster_avatar = ( $board_config['allow_avatar_local'] ) ? '<img src="' . $board_config['avatar_gallery_path'] . '/' . $row['user_avatar'] . '" alt="" border="0" />' : '';
+				$poster_avatar = ( $board_config['allow_avatar_local'] ) ? '<img src="' . $board_config['avatar_gallery_path'] . '/' . phpbb_html(phpbb_asset_url($row['user_avatar'])) . '" alt="" border="0" />' : '';
 				break;
 		}
 	}
@@ -73,14 +73,14 @@ function generate_user_info(&$row, $date_format, $group_mod, &$from, &$posts, &$
 	$pm_img = '<a href="' . $temp_url . '"><img src="' . $images['icon_pm'] . '" alt="' . $lang['Send_private_message'] . '" title="' . $lang['Send_private_message'] . '" border="0" /></a>';
 	$pm = '<a href="' . $temp_url . '">' . $lang['Send_private_message'] . '</a>';
 
-	$www_img = ( $row['user_website'] ) ? '<a href="' . $row['user_website'] . '" target="_userwww"><img src="' . $images['icon_www'] . '" alt="' . $lang['Visit_website'] . '" title="' . $lang['Visit_website'] . '" border="0" /></a>' : '';
-	$www = ( $row['user_website'] ) ? '<a href="' . $row['user_website'] . '" target="_userwww">' . $lang['Visit_website'] . '</a>' : '';
+	$www_img = ( $row['user_website'] ) ? '<a href="' . phpbb_html(phpbb_http_url($row['user_website'])) . '" target="_userwww"><img src="' . $images['icon_www'] . '" alt="' . $lang['Visit_website'] . '" title="' . $lang['Visit_website'] . '" border="0" /></a>' : '';
+	$www = ( $row['user_website'] ) ? '<a href="' . phpbb_html(phpbb_http_url($row['user_website'])) . '" target="_userwww">' . $lang['Visit_website'] . '</a>' : '';
 
 	if ( !empty($row['user_icq']) )
 	{
-		$icq_status_img = '<a href="http://wwp.icq.com/' . $row['user_icq'] . '#pager"><img src="http://web.icq.com/whitepages/online?icq=' . $row['user_icq'] . '&img=5" width="18" height="18" border="0" /></a>';
-		$icq_img = '<a href="http://wwp.icq.com/scripts/search.dll?to=' . $row['user_icq'] . '"><img src="' . $images['icon_icq'] . '" alt="' . $lang['ICQ'] . '" title="' . $lang['ICQ'] . '" border="0" /></a>';
-		$icq =  '<a href="http://wwp.icq.com/scripts/search.dll?to=' . $row['user_icq'] . '">' . $lang['ICQ'] . '</a>';
+		$icq_status_img = '<a href="http://wwp.icq.com/' . phpbb_url_parameter($row['user_icq']) . '#pager"><img src="http://web.icq.com/whitepages/online?icq=' . phpbb_url_parameter($row['user_icq']) . '&img=5" width="18" height="18" border="0" /></a>';
+		$icq_img = '<a href="http://wwp.icq.com/scripts/search.dll?to=' . phpbb_url_parameter($row['user_icq']) . '"><img src="' . $images['icon_icq'] . '" alt="' . $lang['ICQ'] . '" title="' . $lang['ICQ'] . '" border="0" /></a>';
+		$icq =  '<a href="http://wwp.icq.com/scripts/search.dll?to=' . phpbb_url_parameter($row['user_icq']) . '">' . $lang['ICQ'] . '</a>';
 	}
 	else
 	{
@@ -89,15 +89,15 @@ function generate_user_info(&$row, $date_format, $group_mod, &$from, &$posts, &$
 		$icq = '';
 	}
 
-	$aim_img = ( $row['user_aim'] ) ? '<a href="aim:goim?screenname=' . $row['user_aim'] . '&amp;message=Hello+Are+you+there?"><img src="' . $images['icon_aim'] . '" alt="' . $lang['AIM'] . '" title="' . $lang['AIM'] . '" border="0" /></a>' : '';
-	$aim = ( $row['user_aim'] ) ? '<a href="aim:goim?screenname=' . $row['user_aim'] . '&amp;message=Hello+Are+you+there?">' . $lang['AIM'] . '</a>' : '';
+	$aim_img = ( $row['user_aim'] ) ? '<a href="aim:goim?screenname=' . phpbb_url_parameter($row['user_aim']) . '&amp;message=Hello+Are+you+there?"><img src="' . $images['icon_aim'] . '" alt="' . $lang['AIM'] . '" title="' . $lang['AIM'] . '" border="0" /></a>' : '';
+	$aim = ( $row['user_aim'] ) ? '<a href="aim:goim?screenname=' . phpbb_url_parameter($row['user_aim']) . '&amp;message=Hello+Are+you+there?">' . $lang['AIM'] . '</a>' : '';
 
 	$temp_url = append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=" . $row['user_id']);
 	$msn_img = ( $row['user_msnm'] ) ? '<a href="' . $temp_url . '"><img src="' . $images['icon_msnm'] . '" alt="' . $lang['MSNM'] . '" title="' . $lang['MSNM'] . '" border="0" /></a>' : '';
 	$msn = ( $row['user_msnm'] ) ? '<a href="' . $temp_url . '">' . $lang['MSNM'] . '</a>' : '';
 
-	$yim_img = ( $row['user_yim'] ) ? '<a href="http://edit.yahoo.com/config/send_webmesg?.target=' . $row['user_yim'] . '&amp;.src=pg"><img src="' . $images['icon_yim'] . '" alt="' . $lang['YIM'] . '" title="' . $lang['YIM'] . '" border="0" /></a>' : '';
-	$yim = ( $row['user_yim'] ) ? '<a href="http://edit.yahoo.com/config/send_webmesg?.target=' . $row['user_yim'] . '&amp;.src=pg">' . $lang['YIM'] . '</a>' : '';
+	$yim_img = ( $row['user_yim'] ) ? '<a href="http://edit.yahoo.com/config/send_webmesg?.target=' . phpbb_url_parameter($row['user_yim']) . '&amp;.src=pg"><img src="' . $images['icon_yim'] . '" alt="' . $lang['YIM'] . '" title="' . $lang['YIM'] . '" border="0" /></a>' : '';
+	$yim = ( $row['user_yim'] ) ? '<a href="http://edit.yahoo.com/config/send_webmesg?.target=' . phpbb_url_parameter($row['user_yim']) . '&amp;.src=pg">' . $lang['YIM'] . '</a>' : '';
 
 	$temp_url = append_sid("search.$phpEx?search_author=" . urlencode($row['username']) . "&amp;showresults=posts");
 	$search_img = '<a href="' . $temp_url . '"><img src="' . $images['icon_search'] . '" alt="' . sprintf($lang['Search_user_posts'], $row['username']) . '" title="' . sprintf($lang['Search_user_posts'], $row['username']) . '" border="0" /></a>';
@@ -494,7 +494,7 @@ else if ( $group_id )
 				
 				$sql = "SELECT user_id, user_email, user_lang, user_level  
 					FROM " . USERS_TABLE . " 
-					WHERE username = '" . str_replace("\'", "''", $username) . "'";
+					WHERE username = '" . $db->sql_escape_string($username) . "'";
 				if ( !($result = $db->sql_query($sql)) )
 				{
 					message_die(GENERAL_ERROR, "Could not get user information", $lang['Error'], __LINE__, __FILE__, $sql);
@@ -952,8 +952,8 @@ else if ( $group_id )
 		'L_ADD_MEMBER' => $lang['Add_member'],
 		'L_FIND_USERNAME' => $lang['Find_username'],
 
-		'GROUP_NAME' => $group_info['group_name'],
-		'GROUP_DESC' => $group_info['group_description'],
+		'GROUP_NAME' => phpbb_html($group_info['group_name'], false),
+		'GROUP_DESC' => phpbb_purify_html($group_info['group_description']),
 		'GROUP_DETAILS' => $group_details,
 		'MOD_ROW_COLOR' => '#' . $theme['td_color1'],
 		'MOD_ROW_CLASS' => $theme['td_class1'],
@@ -961,7 +961,7 @@ else if ( $group_id )
 		'MOD_FROM' => $from,
 		'MOD_JOINED' => $joined,
 		'MOD_POSTS' => $posts,
-		'MOD_AVATAR_IMG' => $poster_avatar,
+		'MOD_AVATAR_IMG' => phpbb_purify_html($poster_avatar),
 		'MOD_PROFILE_IMG' => $profile_img, 
 		'MOD_PROFILE' => $profile, 
 		'MOD_SEARCH_IMG' => $search_img,
@@ -1020,7 +1020,7 @@ else if ( $group_id )
 				'JOINED' => $joined,
 				'POSTS' => $posts,
 				'USER_ID' => $user_id, 
-				'AVATAR_IMG' => $poster_avatar,
+				'AVATAR_IMG' => phpbb_purify_html($poster_avatar),
 				'PROFILE_IMG' => $profile_img, 
 				'PROFILE' => $profile, 
 				'SEARCH_IMG' => $search_img,
@@ -1113,7 +1113,7 @@ else if ( $group_id )
 					'JOINED' => $joined,
 					'POSTS' => $posts,
 					'USER_ID' => $user_id, 
-					'AVATAR_IMG' => $poster_avatar,
+					'AVATAR_IMG' => phpbb_purify_html($poster_avatar),
 					'PROFILE_IMG' => $profile_img, 
 					'PROFILE' => $profile, 
 					'SEARCH_IMG' => $search_img,
@@ -1193,11 +1193,11 @@ else
 				$in_group[] = $row['group_id'];
 				if ( $row['user_pending'] )
 				{
-					$s_pending_groups_opt .= '<option value="' . $row['group_id'] . '">' . $row['group_name'] . '</option>';
+					$s_pending_groups_opt .= '<option value="' . $row['group_id'] . '">' . phpbb_html($row['group_name'], false) . '</option>';
 				}
 				else
 				{
-					$s_member_groups_opt .= '<option value="' . $row['group_id'] . '">' . $row['group_name'] . '</option>';
+					$s_member_groups_opt .= '<option value="' . $row['group_id'] . '">' . phpbb_html($row['group_name'], false) . '</option>';
 				}
 			}
 			while( $row = $db->sql_fetchrow($result) );
@@ -1226,7 +1226,7 @@ else
 	{
 		if  ( $row['group_type'] != GROUP_HIDDEN || $userdata['user_level'] == ADMIN )
 		{
-			$s_group_list_opt .='<option value="' . $row['group_id'] . '">' . $row['group_name'] . '</option>';
+			$s_group_list_opt .='<option value="' . $row['group_id'] . '">' . phpbb_html($row['group_name'], false) . '</option>';
 		}
 	}
 	$s_group_list = '<select name="' . POST_GROUPS_URL . '">' . $s_group_list_opt . '</select>';

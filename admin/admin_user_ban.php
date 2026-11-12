@@ -36,6 +36,7 @@ if ( !empty($setmodules) )
 $phpbb_root_path = './../';
 require($phpbb_root_path . 'extension.inc');
 require('./pagestart.' . $phpEx);
+phpbb_require_scalar_fields($HTTP_POST_VARS, array('username', 'ban_ip', 'ban_email'));
 
 //
 // Start program
@@ -259,7 +260,7 @@ if ( isset($HTTP_POST_VARS['submit']) )
 		if ( !$in_banlist )
 		{
 			$sql = "INSERT INTO " . BANLIST_TABLE . " (ban_email)
-				VALUES ('" . str_replace("\'", "''", $email_list[$i]) . "')";
+				VALUES ('" . $db->sql_escape_string($email_list[$i]) . "')";
 			if ( !$db->sql_query($sql) )
 			{
 				message_die(GENERAL_ERROR, "Couldn't insert ban_email info into database", "", __LINE__, __FILE__, $sql);
@@ -271,7 +272,7 @@ if ( isset($HTTP_POST_VARS['submit']) )
 
 	if ( isset($HTTP_POST_VARS['unban_user']) )
 	{
-		$user_list = $HTTP_POST_VARS['unban_user'];
+		$user_list = phpbb_id_list($HTTP_POST_VARS['unban_user']);
 
 		for($i = 0; $i < count($user_list); $i++)
 		{
@@ -284,26 +285,26 @@ if ( isset($HTTP_POST_VARS['submit']) )
 
 	if ( isset($HTTP_POST_VARS['unban_ip']) )
 	{
-		$ip_list = $HTTP_POST_VARS['unban_ip'];
+		$ip_list = phpbb_id_list($HTTP_POST_VARS['unban_ip']);
 
 		for($i = 0; $i < count($ip_list); $i++)
 		{
 			if ( $ip_list[$i] != -1 )
 			{
-				$where_sql .= ( ( $where_sql != '' ) ? ', ' : '' ) . str_replace("\'", "''", $ip_list[$i]);
+				$where_sql .= ( ( $where_sql != '' ) ? ', ' : '' ) . (int) $ip_list[$i];
 			}
 		}
 	}
 
 	if ( isset($HTTP_POST_VARS['unban_email']) )
 	{
-		$email_list = $HTTP_POST_VARS['unban_email'];
+		$email_list = phpbb_id_list($HTTP_POST_VARS['unban_email']);
 
 		for($i = 0; $i < count($email_list); $i++)
 		{
 			if ( $email_list[$i] != -1 )
 			{
-				$where_sql .= ( ( $where_sql != '' ) ? ', ' : '' ) . str_replace("\'", "''", $email_list[$i]);
+				$where_sql .= ( ( $where_sql != '' ) ? ', ' : '' ) . (int) $email_list[$i];
 			}
 		}
 	}

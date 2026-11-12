@@ -51,7 +51,7 @@ function language_select($default, $select_name = "language", $dirname="language
 	while ( list($displayname, $filename) = @each($lang) )
 	{
 		$selected = ( strtolower($default) == strtolower($filename) ) ? ' selected="selected"' : '';
-		$lang_select .= '<option value="' . $filename . '"' . $selected . '>' . ucwords($displayname) . '</option>';
+		$lang_select .= '<option value="' . phpbb_html($filename) . '"' . $selected . '>' . phpbb_html(ucwords($displayname)) . '</option>';
 	}
 	$lang_select .= '</select>';
 
@@ -78,7 +78,7 @@ function style_select($default_style, $select_name = "style", $dirname = "templa
 	{
 		$selected = ( $row['themes_id'] == $default_style ) ? ' selected="selected"' : '';
 
-		$style_select .= '<option value="' . $row['themes_id'] . '"' . $selected . '>' . $row['style_name'] . '</option>';
+		$style_select .= '<option value="' . $row['themes_id'] . '"' . $selected . '>' . phpbb_html($row['style_name']) . '</option>';
 	}
 	$style_select .= "</select>";
 

@@ -36,6 +36,7 @@ if ( !empty($setmodules) )
 $phpbb_root_path = './../';
 require($phpbb_root_path . 'extension.inc');
 require('./pagestart.' . $phpEx);
+phpbb_require_scalar_fields($HTTP_POST_VARS, array('group_name', 'group_description', 'username'));
 
 if ( isset($HTTP_POST_VARS[POST_GROUPS_URL]) || isset($HTTP_GET_VARS[POST_GROUPS_URL]) )
 {
@@ -133,8 +134,8 @@ if ( isset($HTTP_POST_VARS['edit']) || isset($HTTP_POST_VARS['new']) )
 	$s_hidden_fields = '<input type="hidden" name="mode" value="' . $mode . '" /><input type="hidden" name="' . POST_GROUPS_URL . '" value="' . $group_id . '" />';
 
 	$template->assign_vars(array(
-		'GROUP_NAME' => $group_info['group_name'],
-		'GROUP_DESCRIPTION' => $group_info['group_description'], 
+		'GROUP_NAME' => phpbb_html($group_info['group_name'], false),
+		'GROUP_DESCRIPTION' => phpbb_html($group_info['group_description']), 
 		'GROUP_MODERATOR' => $group_moderator, 
 
 		'L_GROUP_TITLE' => $lang['Group_administration'],
@@ -327,7 +328,7 @@ else if ( isset($HTTP_POST_VARS['group_update']) )
 			}
 
 			$sql = "UPDATE " . GROUPS_TABLE . "
-				SET group_type = $group_type, group_name = '" . str_replace("\'", "''", $group_name) . "', group_description = '" . str_replace("\'", "''", $group_description) . "', group_moderator = $group_moderator 
+				SET group_type = $group_type, group_name = '" . $db->sql_escape_string($group_name) . "', group_description = '" . $db->sql_escape_string($group_description) . "', group_moderator = $group_moderator 
 				WHERE group_id = $group_id";
 			if ( !$db->sql_query($sql) )
 			{
@@ -341,7 +342,7 @@ else if ( isset($HTTP_POST_VARS['group_update']) )
 		else if( $mode == 'newgroup' )
 		{
 			$sql = "INSERT INTO " . GROUPS_TABLE . " (group_type, group_name, group_description, group_moderator, group_single_user) 
-				VALUES ($group_type, '" . str_replace("\'", "''", $group_name) . "', '" . str_replace("\'", "''", $group_description) . "', $group_moderator,	'0')";
+				VALUES ($group_type, '" . $db->sql_escape_string($group_name) . "', '" . $db->sql_escape_string($group_description) . "', $group_moderator,	'0')";
 			if ( !$db->sql_query($sql) )
 			{
 				message_die(GENERAL_ERROR, 'Could not insert new group', '', __LINE__, __FILE__, $sql);
@@ -383,7 +384,7 @@ else
 		$select_list .= '<select name="' . POST_GROUPS_URL . '">';
 		do
 		{
-			$select_list .= '<option value="' . $row['group_id'] . '">' . $row['group_name'] . '</option>';
+			$select_list .= '<option value="' . $row['group_id'] . '">' . phpbb_html($row['group_name'], false) . '</option>';
 		}
 		while ( $row = $db->sql_fetchrow($result) );
 		$select_list .= '</select>';

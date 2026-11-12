@@ -34,6 +34,7 @@ if( !empty($setmodules) )
 $phpbb_root_path = "./../";
 require($phpbb_root_path . 'extension.inc');
 require('./pagestart.' . $phpEx);
+phpbb_require_scalar_fields($HTTP_POST_VARS, array('categoryname', 'cat_title', 'forumdesc'));
 include($phpbb_root_path . 'includes/functions_admin.'.$phpEx);
 
 $forum_auth_ary = array(
@@ -117,7 +118,7 @@ function get_info($mode, $id)
 
 function get_list($mode, $id, $select)
 {
-	global $db;
+	global $db, $lang;
 
 	switch($mode)
 	{
@@ -150,7 +151,7 @@ function get_list($mode, $id, $select)
 		message_die(GENERAL_ERROR, "Couldn't get list of Categories/Forums", "", __LINE__, __FILE__, $sql);
 	}
 
-	$cat_list = "";
+	$catlist = "";
 
 	while( $row = $db->sql_fetchrow($result) )
 	{
@@ -159,7 +160,7 @@ function get_list($mode, $id, $select)
 		{
 			$s = " selected=\"selected\"";
 		}
-		$catlist .= "<option value=\"$row[$idfield]\"$s>" . $row[$namefield] . "</option>\n";
+		$catlist .= "<option value=\"$row[$idfield]\"$s>" . htmlspecialchars($row[$namefield], ENT_QUOTES, $lang['ENCODING']) . "</option>\n";
 	}
 
 	return($catlist);
@@ -341,8 +342,8 @@ if( !empty($mode) )
 
 				'PRUNE_DAYS' => ( isset($pr_row['prune_days']) ) ? $pr_row['prune_days'] : 7,
 				'PRUNE_FREQ' => ( isset($pr_row['prune_freq']) ) ? $pr_row['prune_freq'] : 1,
-				'FORUM_NAME' => $forumname,
-				'DESCRIPTION' => $forumdesc)
+				'FORUM_NAME' => htmlspecialchars($forumname, ENT_QUOTES, $lang['ENCODING']),
+				'DESCRIPTION' => htmlspecialchars($forumdesc, ENT_QUOTES, $lang['ENCODING']))
 			);
 			$template->pparse("body");
 			break;
@@ -393,7 +394,7 @@ if( !empty($mode) )
 
 			// There is no problem having duplicate forum names so we won't check for it.
 			$sql = "INSERT INTO " . FORUMS_TABLE . " (forum_id, forum_name, cat_id, forum_desc, forum_order, forum_status, prune_enable" . $field_sql . ")
-				VALUES ('" . $next_id . "', '" . str_replace("\'", "''", $HTTP_POST_VARS['forumname']) . "', " . intval($HTTP_POST_VARS[POST_CAT_URL]) . ", '" . str_replace("\'", "''", $HTTP_POST_VARS['forumdesc']) . "', $next_order, " . intval($HTTP_POST_VARS['forumstatus']) . ", " . intval($HTTP_POST_VARS['prune_enable']) . $value_sql . ")";
+				VALUES ('" . $next_id . "', '" . $db->sql_escape_string($HTTP_POST_VARS['forumname']) . "', " . intval($HTTP_POST_VARS[POST_CAT_URL]) . ", '" . $db->sql_escape_string($HTTP_POST_VARS['forumdesc']) . "', $next_order, " . intval($HTTP_POST_VARS['forumstatus']) . ", " . intval($HTTP_POST_VARS['prune_enable']) . $value_sql . ")";
 			if( !$result = $db->sql_query($sql) )
 			{
 				message_die(GENERAL_ERROR, "Couldn't insert row in forums table", "", __LINE__, __FILE__, $sql);
@@ -432,7 +433,7 @@ if( !empty($mode) )
 			}
 
 			$sql = "UPDATE " . FORUMS_TABLE . "
-				SET forum_name = '" . str_replace("\'", "''", $HTTP_POST_VARS['forumname']) . "', cat_id = " . intval($HTTP_POST_VARS[POST_CAT_URL]) . ", forum_desc = '" . str_replace("\'", "''", $HTTP_POST_VARS['forumdesc']) . "', forum_status = " . intval($HTTP_POST_VARS['forumstatus']) . ", prune_enable = " . intval($HTTP_POST_VARS['prune_enable']) . "
+				SET forum_name = '" . $db->sql_escape_string($HTTP_POST_VARS['forumname']) . "', cat_id = " . intval($HTTP_POST_VARS[POST_CAT_URL]) . ", forum_desc = '" . $db->sql_escape_string($HTTP_POST_VARS['forumdesc']) . "', forum_status = " . intval($HTTP_POST_VARS['forumstatus']) . ", prune_enable = " . intval($HTTP_POST_VARS['prune_enable']) . "
 				WHERE forum_id = " . intval($HTTP_POST_VARS[POST_FORUM_URL]);
 			if( !$result = $db->sql_query($sql) )
 			{
@@ -500,7 +501,7 @@ if( !empty($mode) )
 			// There is no problem having duplicate forum names so we won't check for it.
 			//
 			$sql = "INSERT INTO " . CATEGORIES_TABLE . " (cat_title, cat_order)
-				VALUES ('" . str_replace("\'", "''", $HTTP_POST_VARS['categoryname']) . "', $next_order)";
+				VALUES ('" . $db->sql_escape_string($HTTP_POST_VARS['categoryname']) . "', $next_order)";
 			if( !$result = $db->sql_query($sql) )
 			{
 				message_die(GENERAL_ERROR, "Couldn't insert row in categories table", "", __LINE__, __FILE__, $sql);
@@ -531,7 +532,7 @@ if( !empty($mode) )
 			$s_hidden_fields = '<input type="hidden" name="mode" value="' . $newmode . '" /><input type="hidden" name="' . POST_CAT_URL . '" value="' . $cat_id . '" />';
 
 			$template->assign_vars(array(
-				'CAT_TITLE' => $cat_title,
+				'CAT_TITLE' => htmlspecialchars($cat_title, ENT_QUOTES, $lang['ENCODING']),
 
 				'L_EDIT_CATEGORY' => $lang['Edit_Category'], 
 				'L_EDIT_CATEGORY_EXPLAIN' => $lang['Edit_Category_explain'], 
@@ -548,7 +549,7 @@ if( !empty($mode) )
 		case 'modcat':
 			// Modify a category in the DB
 			$sql = "UPDATE " . CATEGORIES_TABLE . "
-				SET cat_title = '" . str_replace("\'", "''", $HTTP_POST_VARS['cat_title']) . "'
+				SET cat_title = '" . $db->sql_escape_string($HTTP_POST_VARS['cat_title']) . "'
 				WHERE cat_id = " . intval($HTTP_POST_VARS[POST_CAT_URL]);
 			if( !$result = $db->sql_query($sql) )
 			{
@@ -584,7 +585,7 @@ if( !empty($mode) )
 			$s_hidden_fields = '<input type="hidden" name="mode" value="' . $newmode . '" /><input type="hidden" name="from_id" value="' . $forum_id . '" />';
 
 			$template->assign_vars(array(
-				'NAME' => $name, 
+				'NAME' => htmlspecialchars($name, ENT_QUOTES, $lang['ENCODING']), 
 
 				'L_FORUM_DELETE' => $lang['Forum_delete'], 
 				'L_FORUM_DELETE_EXPLAIN' => $lang['Forum_delete_explain'], 
@@ -801,7 +802,7 @@ if( !empty($mode) )
 			$s_hidden_fields = '<input type="hidden" name="mode" value="' . $newmode . '" /><input type="hidden" name="from_id" value="' . $cat_id . '" />';
 
 			$template->assign_vars(array(
-				'NAME' => $name, 
+				'NAME' => htmlspecialchars($name, ENT_QUOTES, $lang['ENCODING']), 
 
 				'L_FORUM_DELETE' => $lang['Forum_delete'], 
 				'L_FORUM_DELETE_EXPLAIN' => $lang['Forum_delete_explain'], 
@@ -982,7 +983,7 @@ if( $total_categories = $db->sql_numrows($q_categories) )
 			'S_ADD_FORUM_NAME' => "forumname[$cat_id]", 
 
 			'CAT_ID' => $cat_id,
-			'CAT_DESC' => $category_rows[$i]['cat_title'],
+			'CAT_DESC' => htmlspecialchars($category_rows[$i]['cat_title'], ENT_QUOTES, $lang['ENCODING']),
 
 			'U_CAT_EDIT' => append_sid("admin_forums.$phpEx?mode=editcat&amp;" . POST_CAT_URL . "=$cat_id"),
 			'U_CAT_DELETE' => append_sid("admin_forums.$phpEx?mode=deletecat&amp;" . POST_CAT_URL . "=$cat_id"),
@@ -991,16 +992,14 @@ if( $total_categories = $db->sql_numrows($q_categories) )
 			'U_VIEWCAT' => append_sid($phpbb_root_path."index.$phpEx?" . POST_CAT_URL . "=$cat_id"))
 		);
 
-		for($j = 0; $j < $total_forums; $j++)
-		{
+		for($j = 0; $j < $total_forums; $j++) {
 			$forum_id = $forum_rows[$j]['forum_id'];
 			
-			if ($forum_rows[$j]['cat_id'] == $cat_id)
-			{
+			if ($forum_rows[$j]['cat_id'] == $cat_id) {
 
 				$template->assign_block_vars("catrow.forumrow",	array(
-					'FORUM_NAME' => $forum_rows[$j]['forum_name'],
-					'FORUM_DESC' => $forum_rows[$j]['forum_desc'],
+					'FORUM_NAME' => htmlspecialchars($forum_rows[$j]['forum_name'], ENT_QUOTES, $lang['ENCODING']),
+					'FORUM_DESC' => phpbb_purify_html($forum_rows[$j]['forum_desc']),
 					'ROW_COLOR' => $row_color,
 					'NUM_TOPICS' => $forum_rows[$j]['forum_topics'],
 					'NUM_POSTS' => $forum_rows[$j]['forum_posts'],

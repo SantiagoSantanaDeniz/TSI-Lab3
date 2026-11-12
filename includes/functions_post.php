@@ -162,7 +162,7 @@ function prepare_post(&$mode, &$post_data, &$bbcode_on, &$html_on, &$smilies_on,
 		if(!empty($poll_options))
 		{
 			$temp_option_text = array();
-			while(list($option_id, $option_text) = @each($poll_options))
+			foreach ($poll_options as $option_id => $option_text)
 			{
 				$option_text = trim($option_text);
 				if (!empty($option_text))
@@ -202,6 +202,9 @@ function submit_post($mode, &$post_data, &$message, &$meta, &$forum_id, &$topic_
 	$search_post_message = $post_message;
 	$search_post_subject = $post_subject;
 
+	phpbb_check_length($post_username, 25);
+	phpbb_check_length($post_subject, 60);
+	phpbb_check_length($poll_title, 255);
 	$post_username = $db->sql_escape_string($post_username);
 	$post_subject = $db->sql_escape_string($post_subject);
 	$post_message = $db->sql_escape_string($post_message);
@@ -320,7 +323,9 @@ function submit_post($mode, &$post_data, &$message, &$meta, &$forum_id, &$topic_
 		while (list($option_id, $option_text) = each($poll_options)) {
 			if (!empty($option_text)) {
 				// Comienzo SQL-04
-				$option_text = $db->sql_escape_string(htmlspecialchars($option_text));
+				$option_text = htmlspecialchars($option_text);
+				phpbb_check_length($option_text, 255);
+				$option_text = $db->sql_escape_string($option_text);
 				// Fin SQL-04
 				$poll_result = ($mode == "editpost" && isset($old_poll_result[$option_id])) ? $old_poll_result[$option_id] : 0;
 
@@ -772,7 +777,7 @@ function generate_smilies($mode, $page_id)
 		{
 			if (empty($rowset[$row['smile_url']]))
 			{
-				$rowset[$row['smile_url']]['code'] = str_replace("'", "\\'", str_replace('\\', '\\\\', $row['code']));
+				$rowset[$row['smile_url']]['code'] = phpbb_decoded_text($row['code']);
 				$rowset[$row['smile_url']]['emoticon'] = $row['emoticon'];
 				$num_smilies++;
 			}
@@ -795,9 +800,9 @@ function generate_smilies($mode, $page_id)
 				}
 
 				$template->assign_block_vars('smilies_row.smilies_col', array(
-					'SMILEY_CODE' => $data['code'],
-					'SMILEY_IMG' => $board_config['smilies_path'] . '/' . $smile_url,
-					'SMILEY_DESC' => $data['emoticon'])
+					'SMILEY_CODE' => phpbb_html($data['code']),
+					'SMILEY_IMG' => phpbb_html($board_config['smilies_path'] . '/' . $smile_url),
+					'SMILEY_DESC' => phpbb_html($data['emoticon'], false))
 				);
 
 				$s_colspan = max($s_colspan, $col + 1);

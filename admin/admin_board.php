@@ -245,6 +245,7 @@ if (isset($HTTP_POST_VARS['submit'])) {
 		$HTTP_POST_VARS[$field] = $path;
 	}	
 	$text_limits = array(
+		'default_dateformat'  => 14,
 		'server_name'         => 255,
 		'script_path'         => 255,
 		'sitename'            => 100,

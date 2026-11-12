@@ -258,7 +258,7 @@ if( ( $total_categories = count($category_rows) ) )
 
 	while( $row = $db->sql_fetchrow($result) )
 	{
-		$forum_moderators[$row['forum_id']][] = '<a href="' . append_sid("groupcp.$phpEx?" . POST_GROUPS_URL . "=" . $row['group_id']) . '">' . $row['group_name'] . '</a>';
+		$forum_moderators[$row['forum_id']][] = '<a href="' . append_sid("groupcp.$phpEx?" . POST_GROUPS_URL . "=" . $row['group_id']) . '">' . phpbb_html($row['group_name'], false) . '</a>';
 	}
 	$db->sql_freeresult($result);
 
@@ -335,7 +335,7 @@ if( ( $total_categories = count($category_rows) ) )
 		{
 			$template->assign_block_vars('catrow', array(
 				'CAT_ID' => $cat_id,
-				'CAT_DESC' => $category_rows[$i]['cat_title'],
+				'CAT_DESC' => htmlspecialchars($category_rows[$i]['cat_title'], ENT_QUOTES, $lang['ENCODING']),
 				'U_VIEWCAT' => append_sid("index.$phpEx?" . POST_CAT_URL . "=$cat_id"))
 			);
 
@@ -440,8 +440,8 @@ if( ( $total_categories = count($category_rows) ) )
 								'ROW_COLOR' => '#' . $row_color,
 								'ROW_CLASS' => $row_class,
 								'FORUM_FOLDER_IMG' => $folder_image, 
-								'FORUM_NAME' => $forum_data[$j]['forum_name'],
-								'FORUM_DESC' => $forum_data[$j]['forum_desc'],
+								'FORUM_NAME' => htmlspecialchars($forum_data[$j]['forum_name'], ENT_QUOTES, $lang['ENCODING']),
+								'FORUM_DESC' => phpbb_purify_html($forum_data[$j]['forum_desc']),
 								'POSTS' => $forum_data[$j]['forum_posts'],
 								'TOPICS' => $forum_data[$j]['forum_topics'],
 								'LAST_POST' => $last_post,

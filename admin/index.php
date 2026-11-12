@@ -452,7 +452,7 @@ elseif( isset($HTTP_GET_VARS['pane']) && $HTTP_GET_VARS['pane'] == 'right' )
 					"USERNAME" => $username, 
 					"STARTED" => create_date($board_config['default_dateformat'], $onlinerow_reg[$i]['session_start'], $board_config['board_timezone']), 
 					"LASTUPDATE" => create_date($board_config['default_dateformat'], $onlinerow_reg[$i]['user_session_time'], $board_config['board_timezone']),
-					"FORUM_LOCATION" => $location,
+					"FORUM_LOCATION" => htmlspecialchars($location, ENT_QUOTES, $lang['ENCODING']),
 					"IP_ADDRESS" => $reg_ip, 
 
 					"U_WHOIS_IP" => "http://network-tools.com/default.asp?host=$reg_ip", 
@@ -544,7 +544,7 @@ elseif( isset($HTTP_GET_VARS['pane']) && $HTTP_GET_VARS['pane'] == 'right' )
 				"USERNAME" => $lang['Guest'],
 				"STARTED" => create_date($board_config['default_dateformat'], $onlinerow_guest[$i]['session_start'], $board_config['board_timezone']), 
 				"LASTUPDATE" => create_date($board_config['default_dateformat'], $onlinerow_guest[$i]['session_time'], $board_config['board_timezone']),
-				"FORUM_LOCATION" => $location,
+				"FORUM_LOCATION" => htmlspecialchars($location, ENT_QUOTES, $lang['ENCODING']),
 				"IP_ADDRESS" => $guest_ip, 
 
 				"U_WHOIS_IP" => "http://network-tools.com/default.asp?host=$guest_ip", 

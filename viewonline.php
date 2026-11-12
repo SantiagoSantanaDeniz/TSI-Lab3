@@ -214,7 +214,7 @@ while ( $row = $db->sql_fetchrow($result) )
 			'ROW_CLASS' => $row_class,
 			'USERNAME' => $username,
 			'LASTUPDATE' => create_date($board_config['default_dateformat'], $row['session_time'], $board_config['board_timezone']),
-			'FORUM_LOCATION' => $location,
+			'FORUM_LOCATION' => htmlspecialchars($location, ENT_QUOTES, $lang['ENCODING']),
 
 			'U_USER_PROFILE' => append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '=' . $user_id),
 			'U_FORUM_LOCATION' => append_sid($location_url))

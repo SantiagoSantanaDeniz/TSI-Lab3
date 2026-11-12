@@ -65,7 +65,7 @@ function user_avatar_delete($avatar_type, $avatar_file)
 
 function user_avatar_gallery($mode, &$error, &$error_msg, $avatar_filename, $avatar_category)
 {
-	global $board_config;
+	global $board_config, $db;
 
 	$avatar_filename = phpbb_ltrim(basename($avatar_filename), "'");
 	$avatar_category = phpbb_ltrim(basename($avatar_category), "'");
@@ -82,7 +82,7 @@ function user_avatar_gallery($mode, &$error, &$error_msg, $avatar_filename, $ava
 
 	if ( file_exists(@phpbb_realpath($board_config['avatar_gallery_path'] . '/' . $avatar_category . '/' . $avatar_filename)) && ($mode == 'editprofile') )
 	{
-		$return = ", user_avatar = '" . str_replace("\'", "''", $avatar_category . '/' . $avatar_filename) . "', user_avatar_type = " . USER_AVATAR_GALLERY;
+		$return = ", user_avatar = '" . $db->sql_escape_string($avatar_category . '/' . $avatar_filename) . "', user_avatar_type = " . USER_AVATAR_GALLERY;
 	}
 	else
 	{
@@ -93,7 +93,7 @@ function user_avatar_gallery($mode, &$error, &$error_msg, $avatar_filename, $ava
 
 function user_avatar_url($mode, &$error, &$error_msg, $avatar_filename)
 {
-	global $lang;
+	global $lang, $db;
 
 	if ( !preg_match('#^(http)|(ftp):\/\/#i', $avatar_filename) )
 	{
@@ -109,7 +109,7 @@ function user_avatar_url($mode, &$error, &$error_msg, $avatar_filename)
 		return;
 	}
 
-	return ( $mode == 'editprofile' ) ? ", user_avatar = '" . str_replace("\'", "''", $avatar_filename) . "', user_avatar_type = " . USER_AVATAR_REMOTE : '';
+	return ( $mode == 'editprofile' ) ? ", user_avatar = '" . $db->sql_escape_string($avatar_filename) . "', user_avatar_type = " . USER_AVATAR_REMOTE : '';
 
 }
 
@@ -354,7 +354,7 @@ function display_avatar_gallery($mode, &$category, &$user_id, &$email, &$current
 		$selected = ( $key == $category ) ? ' selected="selected"' : '';
 		if( count($avatar_images[$key]) )
 		{
-			$s_categories .= '<option value="' . $key . '"' . $selected . '>' . ucfirst($key) . '</option>';
+			$s_categories .= '<option value="' . phpbb_html($key) . '"' . $selected . '>' . phpbb_html(ucfirst($key)) . '</option>';
 		}
 	}
 	$s_categories .= '</select>';
@@ -369,23 +369,23 @@ function display_avatar_gallery($mode, &$category, &$user_id, &$email, &$current
 		for($j = 0; $j < count($avatar_images[$category][$i]); $j++)
 		{
 			$template->assign_block_vars('avatar_row.avatar_column', array(
-				"AVATAR_IMAGE" => $board_config['avatar_gallery_path'] . '/' . $category . '/' . $avatar_images[$category][$i][$j], 
-				"AVATAR_NAME" => $avatar_name[$category][$i][$j])
+				"AVATAR_IMAGE" => phpbb_html($board_config['avatar_gallery_path'] . '/' . $category . '/' . $avatar_images[$category][$i][$j]), 
+				"AVATAR_NAME" => phpbb_html($avatar_name[$category][$i][$j]))
 			);
 
 			$template->assign_block_vars('avatar_row.avatar_option_column', array(
-				"S_OPTIONS_AVATAR" => $avatar_images[$category][$i][$j])
+				"S_OPTIONS_AVATAR" => phpbb_html($avatar_images[$category][$i][$j]))
 			);
 		}
 	}
 
 	$params = array('coppa', 'user_id', 'username', 'email', 'current_email', 'cur_password', 'new_password', 'password_confirm', 'icq', 'aim', 'msn', 'yim', 'website', 'location', 'occupation', 'interests', 'signature', 'viewemail', 'notifypm', 'popup_pm', 'notifyreply', 'attachsig', 'allowhtml', 'allowbbcode', 'allowsmilies', 'hideonline', 'style', 'language', 'timezone', 'dateformat');
 
-	$s_hidden_vars = '<input type="hidden" name="sid" value="' . $session_id . '" /><input type="hidden" name="agreed" value="true" /><input type="hidden" name="avatarcatname" value="' . $category . '" />';
+	$s_hidden_vars = '<input type="hidden" name="sid" value="' . $session_id . '" /><input type="hidden" name="agreed" value="true" /><input type="hidden" name="avatarcatname" value="' . phpbb_html($category) . '" />';
 
 	for($i = 0; $i < count($params); $i++)
 	{
-		$s_hidden_vars .= '<input type="hidden" name="' . $params[$i] . '" value="' . str_replace('"', '&quot;', $$params[$i]) . '" />';
+		$s_hidden_vars .= '<input type="hidden" name="' . $params[$i] . '" value="' . phpbb_html(${$params[$i]}, false) . '" />';
 	}
 	
 	$template->assign_vars(array(

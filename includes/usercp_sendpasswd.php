@@ -72,7 +72,9 @@ if ( isset($HTTP_POST_VARS['submit']) ) {
 			$key_len = 54 - strlen($server_url);
 			$key_len = ($key_len > 6) ? $key_len : 6;
 			$user_actkey = substr($user_actkey, 0, $key_len);
-			$user_password = gen_rand_string(false);
+			do {
+				$user_password = gen_rand_string(false);
+			} while (phpbb_password_policy_error($user_password, $username) !== '');
 			
 			$sql_password_hash = $db->sql_escape_string(phpbb_password_hash($user_password));
 
