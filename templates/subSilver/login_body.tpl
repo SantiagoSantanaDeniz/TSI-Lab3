@@ -1,5 +1,6 @@
  
 <form action="{S_LOGIN_ACTION}" method="post" target="_top">
+<input type="hidden" name="csrf_token" value="{LOGIN_CSRF_TOKEN}" />
 
 <table width="100%" cellspacing="2" cellpadding="2" border="0" align="center">
   <tr> 

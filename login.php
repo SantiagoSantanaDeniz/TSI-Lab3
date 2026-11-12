@@ -54,6 +54,16 @@ if (!empty($HTTP_POST_VARS['sid']) || !empty($HTTP_GET_VARS['sid'])) {
 
 if( isset($HTTP_POST_VARS['login']) || isset($HTTP_GET_VARS['login']) || isset($HTTP_POST_VARS['logout']) || isset($HTTP_GET_VARS['logout']) ) {
 	if( ( isset($HTTP_POST_VARS['login']) || isset($HTTP_GET_VARS['login']) ) && (!$userdata['session_logged_in'] || isset($HTTP_POST_VARS['admin'])) ) {
+		
+		// Comienzo CSRF-01
+		$submitted_token = isset($HTTP_POST_VARS['csrf_token']) ? $HTTP_POST_VARS['csrf_token'] : '';
+		$expected_token = phpbb_csrf_token(false);
+
+		if ($HTTP_SERVER_VARS['REQUEST_METHOD'] !== 'POST' || !is_string($submitted_token) || !preg_match('/\A[a-f0-9]{64}\z/', $submitted_token) || $expected_token === '' || !hash_equals($expected_token, $submitted_token)) {
+			message_die(GENERAL_MESSAGE, 'Formulario invalido o sesion vencida. Abra nuevamente la pagina de login.');
+		}
+		// Fin CSRF-01
+	
 		$username = isset($HTTP_POST_VARS['username']) ? $HTTP_POST_VARS['username'] : '';
 		$password = isset($HTTP_POST_VARS['password']) ? $HTTP_POST_VARS['password'] : '';
 
@@ -113,6 +123,15 @@ if( isset($HTTP_POST_VARS['login']) || isset($HTTP_GET_VARS['login']) || isset($
 					$autologin = ( isset($HTTP_POST_VARS['autologin']) ) ? TRUE : 0;
 
 					$admin = (isset($HTTP_POST_VARS['admin'])) ? 1 : 0;
+		
+					// Comienzo CSRF-01
+					$sql_previous_sid = $db->sql_escape_string($userdata['session_id']);
+
+					if (!$db->sql_query("DELETE FROM " . SESSIONS_TABLE . " WHERE session_id = '$sql_previous_sid'")) {
+						message_die(GENERAL_ERROR, 'No se pudo renovar la sesion.');
+					}
+					// Fin CSRF-01
+					
 					$session_id = session_begin($row['user_id'], $user_ip, PAGE_INDEX, FALSE, $autologin, $admin);
 
 					// Reset login tries

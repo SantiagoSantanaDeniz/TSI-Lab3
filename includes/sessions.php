@@ -583,4 +583,56 @@ function append_sid($url, $non_html_amp = false)
 	return $url;
 }
 
+function phpbb_csrf_token($create = true) {
+	global $db, $userdata;
+
+	if (empty($userdata['session_id'])) {
+		message_die(GENERAL_ERROR, 'No se pudo identificar la sesion.');
+	}
+
+	$sql_sid = $db->sql_escape_string($userdata['session_id']);
+	$sql = "SELECT session_csrf_token FROM " . SESSIONS_TABLE . " WHERE session_id = '$sql_sid'";
+
+	if (!($result = $db->sql_query($sql))) {
+		message_die(GENERAL_ERROR, 'No se pudo obtener el token.');
+	}
+
+	$row = $db->sql_fetchrow($result);
+	$db->sql_freeresult($result);
+
+	if (!$row) {
+		message_die(GENERAL_MESSAGE, 'La sesion vencio. Recargue la pagina.');
+	}
+
+	$token = $row['session_csrf_token'];
+
+	if (preg_match('/\A[a-f0-9]{64}\z/', $token)) {
+		return $token;
+	}
+
+	if (!$create) {
+		return '';
+	}
+
+	if (!function_exists('openssl_random_pseudo_bytes')) {
+		message_die(GENERAL_ERROR, 'No esta disponible el generador seguro.');
+	}
+
+	$strong = false;
+	$bytes = openssl_random_pseudo_bytes(32, $strong);
+
+	if ($bytes === false || !$strong || strlen($bytes) !== 32) {
+		message_die(GENERAL_ERROR, 'No se pudo generar el token.');
+	}
+
+	$new_token = bin2hex($bytes);
+	$sql = "UPDATE " . SESSIONS_TABLE . " SET session_csrf_token = '$new_token' WHERE session_id = '$sql_sid' AND session_csrf_token = ''";
+
+	if (!$db->sql_query($sql)) {
+		message_die(GENERAL_ERROR, 'No se pudo guardar el token.');
+	}
+
+	return phpbb_csrf_token(false);
+}
+
 ?>

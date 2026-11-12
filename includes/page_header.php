@@ -339,6 +339,7 @@ $l_timezone = (count($l_timezone) > 1 && $l_timezone[count($l_timezone)-1] != 0)
 //
 $template->assign_vars(array(
 	'SITENAME' => htmlspecialchars($board_config['sitename'], ENT_QUOTES, $lang['ENCODING']),
+	'LOGIN_CSRF_TOKEN' => phpbb_csrf_token(),
 	'SITE_DESCRIPTION' => htmlspecialchars($board_config['site_desc'], ENT_QUOTES, $lang['ENCODING']),
 	'PAGE_TITLE' => $page_title,
 	'LAST_VISIT_DATE' => sprintf($lang['You_last_visit'], $s_last_visit),
