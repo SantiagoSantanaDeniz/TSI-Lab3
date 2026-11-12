@@ -27,21 +27,14 @@ include($phpbb_root_path . 'common.'.$phpEx);
 include($phpbb_root_path . 'includes/bbcode.'.$phpEx);
 include($phpbb_root_path . 'includes/functions_post.'.$phpEx);
 
-
-$HTTP_POST_VARS = $_GET;
-
 //
 // Check and set various parameters
 //
 $params = array('submit' => 'post', 'preview' => 'preview', 'delete' => 'delete', 'poll_delete' => 'poll_delete', 'poll_add' => 'add_poll_option', 'poll_edit' => 'edit_poll_option', 'mode' => 'mode');
-while( list($var, $param) = @each($params) )
-{
-	if ( !empty($HTTP_POST_VARS[$param]) || !empty($HTTP_GET_VARS[$param]) )
-	{
+while( list($var, $param) = @each($params) ) {
+	if ( !empty($HTTP_POST_VARS[$param]) || !empty($HTTP_GET_VARS[$param]) ) {
 		$$var = ( !empty($HTTP_POST_VARS[$param]) ) ? htmlspecialchars($HTTP_POST_VARS[$param]) : htmlspecialchars($HTTP_GET_VARS[$param]);
-	}
-	else
-	{
+	} else {
 		$$var = '';
 	}
 }
@@ -94,6 +87,18 @@ else if ( $mode == 'smilies' )
 //
 $userdata = session_pagestart($user_ip, PAGE_POSTING);
 init_userprefs($userdata);
+
+// Comienzo CSRF-02
+if ($submit || $confirm || $mode === 'vote') {
+	$submitted_token = isset($HTTP_POST_VARS['csrf_token']) ? $HTTP_POST_VARS['csrf_token'] : '';
+	$expected_token = phpbb_csrf_token(false);
+
+	if ($HTTP_SERVER_VARS['REQUEST_METHOD'] !== 'POST' || !is_string($submitted_token) || !preg_match('/\A[a-f0-9]{64}\z/', $submitted_token) || $expected_token === '' || !hash_equals($expected_token, $submitted_token)) {
+		message_die(GENERAL_MESSAGE, 'Formulario invalido o sesion vencida. Abra nuevamente el formulario.');
+	}
+}
+// Fin CSRF-02
+
 //
 // End session management
 //
@@ -436,6 +441,7 @@ if ( ( $delete || $poll_delete || $mode == 'delete' ) && !$confirm )
 	$s_hidden_fields = '<input type="hidden" name="' . POST_POST_URL . '" value="' . $post_id . '" />';
 	$s_hidden_fields .= ( $delete || $mode == "delete" ) ? '<input type="hidden" name="mode" value="delete" />' : '<input type="hidden" name="mode" value="poll_delete" />';
 	$s_hidden_fields .= '<input type="hidden" name="sid" value="' . $userdata['session_id'] . '" />';
+	$s_hidden_fields .= '<input type="hidden" name="csrf_token" value="' . phpbb_csrf_token() . '" />';
 
 	$l_confirm = ( $delete || $mode == 'delete' ) ? $lang['Confirm_delete'] : $lang['Confirm_delete_poll'];
 

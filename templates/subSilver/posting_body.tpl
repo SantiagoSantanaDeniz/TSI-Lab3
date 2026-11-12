@@ -255,7 +255,8 @@ function storeCaret(textEl) {
 <br clear="all" />
 <!-- END privmsg_extensions -->
 
-<form action="{S_POST_ACTION}" method="get" name="post" onsubmit="return checkForm(this)">
+<form action="{S_POST_ACTION}" method="post" name="post" onsubmit="return checkForm(this)">
+<input type="hidden" name="csrf_token" value="{LOGIN_CSRF_TOKEN}" />
 
 {POST_PREVIEW_BOX}
 {ERROR_BOX}

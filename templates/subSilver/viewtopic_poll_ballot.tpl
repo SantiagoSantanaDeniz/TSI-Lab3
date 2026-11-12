@@ -22,5 +22,5 @@
 						
 		  <td align="center"><span class="gensmall"><b><a href="{U_VIEW_RESULTS}" class="gensmall">{L_VIEW_RESULTS}</a></b></span></td>
 					</tr>
-				</table>{S_HIDDEN_FIELDS}</form></td>
+				</table>{S_HIDDEN_FIELDS}<input type="hidden" name="csrf_token" value="{LOGIN_CSRF_TOKEN}" /></form></td>
 			</tr>

@@ -1163,7 +1163,8 @@ for($i = 0; $i < $total_posts; $i++)
 
 	// XSS-02
 	$message = phpbb_purify_html($message);
-
+	$user_sig = phpbb_purify_html($user_sig);
+	
 	$template->assign_block_vars('postrow', array(
 		'ROW_COLOR' => '#' . $row_color,
 		'ROW_CLASS' => $row_class,
