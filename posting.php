@@ -639,7 +639,7 @@ else if ( $submit || $confirm )
 
 			$tracking_topics[$topic_id] = time();
 
-			setcookie($board_config['cookie_name'] . '_t', serialize($tracking_topics), 0, $board_config['cookie_path'], $board_config['cookie_domain'], $board_config['cookie_secure']);
+			setcookie($board_config['cookie_name'] . '_t', serialize($tracking_topics), 0, $board_config['cookie_path'] . '; SameSite=Lax', $board_config['cookie_domain'], $board_config['cookie_secure'], true);
 		}
 
 		$template->assign_vars(array(
