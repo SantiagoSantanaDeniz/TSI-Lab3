@@ -13,7 +13,7 @@
 	<tr>
 		<td class="{styles.ROW_CLASS}">{styles.STYLE_NAME}</td>
 		<td class="{styles.ROW_CLASS}">{styles.TEMPLATE_NAME}</td>
-		<td class="{styles.ROW_CLASS}"><a href="{styles.U_STYLES_INSTALL}">{L_INSTALL}</a></td>
+		<td class="{styles.ROW_CLASS}"><button type="submit" form="phpbb_csrf_actions" formaction="{styles.U_STYLES_INSTALL}" class="csrf-action">{L_INSTALL}</button></td>
 	</tr>
 	<!-- END styles -->
 </table>

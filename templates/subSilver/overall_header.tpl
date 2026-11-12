@@ -117,6 +117,8 @@ a.mainmenu:hover{ text-decoration: underline; color : {T_BODY_HLINK}; }
 form.logout-form { display: inline; margin: 0; padding: 0; }
 button.logout-button { background: transparent; border: 0; padding: 0; color: {T_BODY_LINK}; font-family: {T_FONTFACE1}; cursor: pointer; }
 button.logout-button:hover { text-decoration: underline; color: {T_BODY_HLINK}; }
+button.pm-read-button { background: transparent; border: 0; padding: 0; color: {T_BODY_LINK}; font-family: inherit; font-size: inherit; font-weight: inherit; text-align: left; cursor: pointer; }
+button.pm-read-button:hover { text-decoration: underline; color: {T_BODY_HLINK}; }
 
 /* Forum category titles */
 .cattitle		{ font-weight: bold; font-size: {T_FONTSIZE3}px ; letter-spacing: 1px; color : {T_BODY_LINK}}
@@ -211,6 +213,8 @@ input.liteoption {
 /* Import the fancy styles for IE only (NS4.x doesn't use the @import function) */
 @import url("templates/subSilver/formIE.css"); 
 -->
+button.csrf-action { background: transparent; border: 0; padding: 0; font: inherit; color: {T_BODY_LINK}; text-decoration: underline; cursor: pointer; }
+button.csrf-action:hover { color: {T_BODY_HLINK}; }
 </style>
 <!-- BEGIN switch_enable_pm_popup -->
 <script language="Javascript" type="text/javascript">
@@ -224,6 +228,7 @@ input.liteoption {
 <!-- END switch_enable_pm_popup -->
 </head>
 <body bgcolor="{T_BODY_BGCOLOR}" text="{T_BODY_TEXT}" link="{T_BODY_LINK}" vlink="{T_BODY_VLINK}">
+{CSRF_ACTION_FORM}
 
 <a name="top"></a>
 

@@ -45,9 +45,12 @@ if ( $row = $db->sql_fetchrow($result) )
 
 		message_die(GENERAL_MESSAGE, $lang['Already_activated']);
 	}
-	else if ((trim($row['user_actkey']) == trim($HTTP_GET_VARS['act_key'])) && (trim($row['user_actkey']) != ''))
+	else if (isset($HTTP_GET_VARS['act_key']) && is_string($HTTP_GET_VARS['act_key']) && trim($row['user_actkey']) !== '' && hash_equals(trim($row['user_actkey']), trim($HTTP_GET_VARS['act_key'])))
 	{
-		phpbb_csrf_require_post();
+		if ($HTTP_SERVER_VARS['REQUEST_METHOD'] === 'HEAD') {
+			header('HTTP/1.1 405 Method Not Allowed');
+			exit;
+		}
 		if (intval($board_config['require_activation']) == USER_ACTIVATION_ADMIN && $row['user_newpasswd'] == '')
 		{
 			if (!$userdata['session_logged_in'])

@@ -167,7 +167,6 @@ else if ( $search_keywords != '' || $search_author != '' || $search_id )
 	//
 	if ( $search_id == 'newposts' || $search_id == 'egosearch' || $search_id == 'unanswered' || $search_keywords != '' || $search_author != '' )
 	{
-		phpbb_csrf_require_post();
 		//
 		// Flood control
 		//

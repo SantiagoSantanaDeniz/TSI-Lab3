@@ -755,30 +755,6 @@ if( isset($HTTP_GET_VARS['perform']) || isset($HTTP_POST_VARS['perform']) )
 				break;
 
 			}
-			else if( !isset($HTTP_POST_VARS['startdownload']) && !isset($HTTP_GET_VARS['startdownload']) )
-			{
-				if(is_array($additional_tables))
-				{
-					$additional_tables = implode(',', $additional_tables);
-				}
-				$template->set_filenames(array(
-					"body" => "admin/admin_message_body.tpl")
-				);
-
-				$template->assign_vars(array(
-					"META" => '<meta http-equiv="refresh" content="2;url=' . append_sid("admin_db_utilities.$phpEx?perform=backup&additional_tables=" . quotemeta($additional_tables) . "&backup_type=$backup_type&drop=1&amp;backupstart=1&gzipcompress=$gzipcompress&startdownload=1") . '">',
-
-					"MESSAGE_TITLE" => $lang['Database_Utilities'] . " : " . $lang['Backup'],
-					"MESSAGE_TEXT" => $lang['Backup_download'])
-				);
-
-				include('./page_header_admin.'.$phpEx);
-
-				$template->pparse("body");
-
-				include('./page_footer_admin.'.$phpEx);
-
-			}
 			header("Pragma: no-cache");
 			$do_gzip_compress = FALSE;
 			if( $gzipcompress )

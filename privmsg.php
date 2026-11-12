@@ -175,7 +175,6 @@ if ( $mode == 'newpm' )
 }
 else if ( $mode == 'read' )
 {
-	phpbb_csrf_require_post();
 	if ( !empty($HTTP_GET_VARS[POST_POST_URL]) )
 	{
 		$privmsgs_id = intval($HTTP_GET_VARS[POST_POST_URL]);
@@ -256,7 +255,7 @@ else if ( $mode == 'read' )
 	// Is this a new message in the inbox? If it is then save
 	// a copy in the posters sent box
 	//
-	if (($privmsg['privmsgs_type'] == PRIVMSGS_NEW_MAIL || $privmsg['privmsgs_type'] == PRIVMSGS_UNREAD_MAIL) && $folder == 'inbox')
+	if (($privmsg['privmsgs_type'] == PRIVMSGS_NEW_MAIL || $privmsg['privmsgs_type'] == PRIVMSGS_UNREAD_MAIL) && $folder == 'inbox' && $HTTP_SERVER_VARS['REQUEST_METHOD'] === 'POST')
 	{
 		// Update appropriate counter
 		switch ($privmsg['privmsgs_type'])

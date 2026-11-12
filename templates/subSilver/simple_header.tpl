@@ -9,6 +9,8 @@
 <style type="text/css">
 <!--
 -->
+button.csrf-action { background: transparent; border: 0; padding: 0; font: inherit; color: {T_BODY_LINK}; text-decoration: underline; cursor: pointer; }
+button.csrf-action:hover { color: {T_BODY_HLINK}; }
 </style>
 {META}
 <title>{SITENAME} :: {PAGE_TITLE}</title>
@@ -234,4 +236,5 @@ input.liteoption {
 </head>
 
 <body bgcolor="{T_BODY_BGCOLOR}" text="{T_BODY_TEXT}" link="{T_BODY_LINK}" vlink="{T_BODY_VLINK}">
+{CSRF_ACTION_FORM}
 <span class="gen"><a name="top"></a></span>

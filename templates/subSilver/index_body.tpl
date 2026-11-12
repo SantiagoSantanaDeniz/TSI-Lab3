@@ -43,7 +43,7 @@
   <tr> 
  	<td align="left">
  	<!-- BEGIN switch_user_logged_in -->
- 		<span class="gensmall"><a href="{U_MARK_READ}" class="gensmall">{L_MARK_FORUMS_READ}</a></span>
+		<span class="gensmall"><button type="submit" form="phpbb_csrf_actions" formaction="{U_MARK_READ}" class="csrf-action gensmall">{L_MARK_FORUMS_READ}</button></span>
  	<!-- END switch_user_logged_in -->
  	</td>
 	<td align="right"><span class="gensmall">{S_TIMEZONE}</span></td>

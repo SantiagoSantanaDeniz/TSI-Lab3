@@ -599,7 +599,10 @@ if ( $is_auth['auth_mod'] )
 
 	$topic_mod .= "<a href=\"modcp.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;mode=move&amp;sid=" . $userdata['session_id'] . '"><img src="' . $images['topic_mod_move'] . '" alt="' . $lang['Move_topic'] . '" title="' . $lang['Move_topic'] . '" border="0" /></a>&nbsp;';
 
-	$topic_mod .= ( $forum_topic_data['topic_status'] == TOPIC_UNLOCKED ) ? "<a href=\"modcp.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;mode=lock&amp;sid=" . $userdata['session_id'] . '"><img src="' . $images['topic_mod_lock'] . '" alt="' . $lang['Lock_topic'] . '" title="' . $lang['Lock_topic'] . '" border="0" /></a>&nbsp;' : "<a href=\"modcp.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;mode=unlock&amp;sid=" . $userdata['session_id'] . '"><img src="' . $images['topic_mod_unlock'] . '" alt="' . $lang['Unlock_topic'] . '" title="' . $lang['Unlock_topic'] . '" border="0" /></a>&nbsp;';
+	$lock_mode = ($forum_topic_data['topic_status'] == TOPIC_UNLOCKED) ? 'lock' : 'unlock';
+	$lock_label = ($lock_mode == 'lock') ? $lang['Lock_topic'] : $lang['Unlock_topic'];
+	$lock_image = ($lock_mode == 'lock') ? $images['topic_mod_lock'] : $images['topic_mod_unlock'];
+	$topic_mod .= phpbb_csrf_action(append_sid("modcp.$phpEx?" . POST_TOPIC_URL . "=$topic_id&mode=$lock_mode&sid=" . $userdata['session_id']), '<img src="' . $lock_image . '" alt="' . $lock_label . '" title="' . $lock_label . '" border="0" />') . '&nbsp;';
 
 	$topic_mod .= "<a href=\"modcp.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;mode=split&amp;sid=" . $userdata['session_id'] . '"><img src="' . $images['topic_mod_split'] . '" alt="' . $lang['Split_topic'] . '" title="' . $lang['Split_topic'] . '" border="0" /></a>&nbsp;';
 }
@@ -610,16 +613,12 @@ if ( $is_auth['auth_mod'] )
 $s_watching_topic = '';
 if ( $can_watch_topic )
 {
-	if ( $is_watching_topic )
-	{
-		$s_watching_topic = "<a href=\"viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;unwatch=topic&amp;start=$start&amp;sid=" . $userdata['session_id'] . '">' . $lang['Stop_watching_topic'] . '</a>';
-		$s_watching_topic_img = ( isset($images['topic_un_watch']) ) ? "<a href=\"viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;unwatch=topic&amp;start=$start&amp;sid=" . $userdata['session_id'] . '"><img src="' . $images['topic_un_watch'] . '" alt="' . $lang['Stop_watching_topic'] . '" title="' . $lang['Stop_watching_topic'] . '" border="0"></a>' : '';
-	}
-	else
-	{
-		$s_watching_topic = "<a href=\"viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;watch=topic&amp;start=$start&amp;sid=" . $userdata['session_id'] . '">' . $lang['Start_watching_topic'] . '</a>';
-		$s_watching_topic_img = ( isset($images['Topic_watch']) ) ? "<a href=\"viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;watch=topic&amp;start=$start&amp;sid=" . $userdata['session_id'] . '"><img src="' . $images['Topic_watch'] . '" alt="' . $lang['Start_watching_topic'] . '" title="' . $lang['Start_watching_topic'] . '" border="0"></a>' : '';
-	}
+	$watch_action = $is_watching_topic ? 'unwatch' : 'watch';
+	$watch_label = $is_watching_topic ? $lang['Stop_watching_topic'] : $lang['Start_watching_topic'];
+	$watch_url = append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id&$watch_action=topic&start=$start&sid=" . $userdata['session_id']);
+	$s_watching_topic = phpbb_csrf_action($watch_url, $watch_label, 'gensmall');
+	$watch_icon = $is_watching_topic ? 'topic_un_watch' : 'Topic_watch';
+	$s_watching_topic_img = isset($images[$watch_icon]) ? phpbb_csrf_action($watch_url, '<img src="' . $images[$watch_icon] . '" alt="' . $watch_label . '" title="' . $watch_label . '" border="0" />') : '';
 }
 
 //

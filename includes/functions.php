@@ -1223,73 +1223,18 @@ function phpbb_csrf_hidden()
     return '<input type="hidden" name="csrf_token" value="' . phpbb_csrf_token() . '" />';
 }
 
-// The URL carries only routing parameters; the secret is submitted in the body.
-function phpbb_csrf_confirm_action($description)
+// Buttons use a separate form so they also work inside existing forms.
+function phpbb_csrf_action($url, $label, $class = '')
 {
-    global $HTTP_SERVER_VARS;
-    $script = basename($HTTP_SERVER_VARS['SCRIPT_NAME']);
-    if (!preg_match('/\A[a-zA-Z0-9_]+\.php\z/', $script)) {
-        message_die(GENERAL_MESSAGE, 'Ruta inv&aacute;lida.');
-        exit;
-    }
-    $query = isset($HTTP_SERVER_VARS['QUERY_STRING']) ? $HTTP_SERVER_VARS['QUERY_STRING'] : '';
-    $action = $script . ($query !== '' ? '?' . $query : '');
-    $form = '<form method="post" action="' . phpbb_html($action) . '">' .
-        phpbb_csrf_hidden() . '<p>' . phpbb_html($description, false) . '</p>' .
-        '<input type="submit" name="csrf_confirm" value="Confirmar" /></form>';
-    header('X-Frame-Options: SAMEORIGIN');
-    message_die(GENERAL_MESSAGE, $form);
-    exit;
+    return '<button type="submit" form="phpbb_csrf_actions" formaction="' . phpbb_html($url, false) .
+        '" class="csrf-action ' . phpbb_html($class) . '">' . $label . '</button>';
 }
 
-// GET links may open a confirmation but cannot execute the requested action.
-function phpbb_csrf_get_action($script, $get, $admin)
+function phpbb_csrf_action_form()
 {
-    if (($script === 'index.php' || $script === 'viewforum.php') && isset($get['mark'])) {
-        return 'Marcar como le&#237;dos';
-    }
-    if ($script === 'viewtopic.php' && (isset($get['watch']) || isset($get['unwatch']))) {
-        return 'Cambiar el seguimiento del tema';
-    }
-    if ($script === 'login.php' && isset($get['logout'])) {
-        return 'Cerrar sesi&#243;n';
-    }
-    if ($script === 'profile.php' && isset($get['mode']) && $get['mode'] === 'activate') {
-        return 'Activar la cuenta o la contrase&#241;a recuperada';
-    }
-    if ($script === 'modcp.php' && isset($get['mode']) &&
-        in_array($get['mode'], array('lock', 'unlock'), true)) {
-        return 'Cambiar el bloqueo del tema';
-    }
-    if ($script === 'search.php' && (isset($get['search_keywords']) || isset($get['search_author']) ||
-        (isset($get['search_id']) && in_array($get['search_id'], array('newposts', 'egosearch', 'unanswered'), true)))) {
-        return 'Ejecutar la b&#250;squeda';
-    }
-    // Reading a private message changes counters, its type and the sender's box.
-    if ($script === 'privmsg.php' && isset($get['mode']) && $get['mode'] === 'read') {
-        return 'Abrir el mensaje privado y marcarlo como le&#237;do';
-    }
-    if (!$admin) {
-        return '';
-    }
-    $modes = array(
-        'admin_forums.php' => array('createforum', 'modforum', 'addcat', 'modcat',
-            'movedelforum', 'movedelcat', 'forum_order', 'cat_order', 'forum_sync'),
-        'admin_styles.php' => array('addnew'),
-        'admin_smilies.php' => array('save', 'savenew'),
-        'admin_ranks.php' => array('save'),
-        'admin_words.php' => array('save')
-    );
-    if (isset($modes[$script], $get['mode']) && in_array($get['mode'], $modes[$script], true)) {
-        return 'Aplicar el cambio administrativo';
-    }
-    if ($script === 'admin_smilies.php' && isset($get['import_pack']) && !empty($get['smile_pak'])) {
-        return 'Importar el paquete de emoticonos';
-    }
-    if ($script === 'admin_db_utilities.php' && (isset($get['backupstart']) || isset($get['startdownload']))) {
-        return 'Generar o descargar la copia de la base de datos';
-    }
-    return '';
+    global $userdata;
+    return '<form id="phpbb_csrf_actions" method="post" action="">' . phpbb_csrf_hidden() .
+        '<input type="hidden" name="sid" value="' . phpbb_html($userdata['session_id']) . '" /></form>';
 }
 
 function phpbb_csrf_request_guard()
@@ -1297,7 +1242,7 @@ function phpbb_csrf_request_guard()
     global $HTTP_SERVER_VARS, $HTTP_GET_VARS, $userdata, $template;
     static $checked = false;
     if ($checked) {
-        $template->assign_vars(array('CSRF_HIDDEN' => phpbb_csrf_hidden()));
+        $template->assign_vars(array('CSRF_HIDDEN' => phpbb_csrf_hidden(), 'CSRF_ACTION_FORM' => phpbb_csrf_action_form()));
         return;
     }
     $checked = true;
@@ -1311,20 +1256,8 @@ function phpbb_csrf_request_guard()
         exit;
     }
     header('Cache-Control: private, no-store');
-    $template->assign_vars(array('CSRF_HIDDEN' => phpbb_csrf_hidden()));
-    if ($method !== 'POST') {
-        $script = basename($HTTP_SERVER_VARS['SCRIPT_NAME']);
-        $admin = defined('IN_ADMIN') && !empty($userdata['session_admin']) && $userdata['user_level'] == ADMIN;
-        $description = phpbb_csrf_get_action($script, $HTTP_GET_VARS, $admin);
-        if ($description !== '') {
-            if ($method !== 'GET') {
-                header('HTTP/1.1 405 Method Not Allowed');
-                message_die(GENERAL_MESSAGE, 'Esta operaci&oacute;n requiere POST.');
-                exit;
-            }
-            phpbb_csrf_confirm_action($description);
-        }
-    }
+    $template->assign_vars(array('CSRF_HIDDEN' => phpbb_csrf_hidden(), 'CSRF_ACTION_FORM' => phpbb_csrf_action_form()));
+
 }
 
 ?>

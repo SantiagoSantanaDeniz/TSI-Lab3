@@ -218,9 +218,12 @@ input.liteoption {
 /* Import the fancy styles for IE only (NS4.x doesn't use the @import function) */
 @import url("../templates/subSilver/formIE.css"); 
 -->
+button.csrf-action { background: transparent; border: 0; padding: 0; font: inherit; color: {T_BODY_LINK}; text-decoration: underline; cursor: pointer; }
+button.csrf-action:hover { color: {T_BODY_HLINK}; }
 </style>
 <title>{SITENAME} - {L_PHPBB_ADMIN}</title>
 </head>
 <body bgcolor="{T_BODY_BGCOLOR}" text="{T_BODY_TEXT}" link="{T_BODY_LINK}" vlink="{T_BODY_VLINK}">
+{CSRF_ACTION_FORM}
 
 <a name="top"></a>
