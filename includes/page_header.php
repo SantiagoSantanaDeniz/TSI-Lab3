@@ -388,6 +388,8 @@ $template->assign_vars(array(
 	'U_FAQ' => append_sid('faq.'.$phpEx),
 	'U_VIEWONLINE' => append_sid('viewonline.'.$phpEx),
 	'U_LOGIN_LOGOUT' => append_sid($u_login_logout),
+	'S_LOGOUT_ACTION' => phpbb_html(append_sid('login.' . $phpEx), false),
+	'LOGOUT_SID' => phpbb_html($userdata['session_id']),
 	'U_GROUP_CP' => append_sid('groupcp.'.$phpEx),
 
 	'S_CONTENT_DIRECTION' => $lang['DIRECTION'],

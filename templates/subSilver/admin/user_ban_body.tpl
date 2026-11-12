@@ -3,7 +3,7 @@
 
 <p>{L_BAN_EXPLAIN}</p>
 
-<form method="post" name="post" action="{S_BANLIST_ACTION}"><table width="80%" cellspacing="1" cellpadding="4" border="0" align="center" class="forumline">
+<form method="post" name="post" action="{S_BANLIST_ACTION}">{CSRF_HIDDEN}<table width="80%" cellspacing="1" cellpadding="4" border="0" align="center" class="forumline">
 	<tr> 
 	  <th class="thHead" colspan="2">{L_BAN_USER}</th>
 	</tr>

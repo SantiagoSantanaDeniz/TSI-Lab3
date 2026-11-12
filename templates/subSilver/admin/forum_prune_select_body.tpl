@@ -1,7 +1,7 @@
 
 <h1>{L_FORUM_PRUNE}</h1>
 
-<form method="post" action="{S_FORUMPRUNE_ACTION}"><table cellspacing="1" cellpadding="4" border="0" align="center" class="forumline">
+<form method="post" action="{S_FORUMPRUNE_ACTION}">{CSRF_HIDDEN}<table cellspacing="1" cellpadding="4" border="0" align="center" class="forumline">
 	<tr>
 		
 	  <th class="thHead" align="center">{L_SELECT_FORUM}</th>

@@ -3,7 +3,7 @@
 
 <p>{L_RANKS_TEXT}</p>
 
-<form method="post" action="{S_RANKS_ACTION}"><table cellspacing="1" cellpadding="4" border="0" align="center" class="forumline">
+<form method="post" action="{S_RANKS_ACTION}">{CSRF_HIDDEN}<table cellspacing="1" cellpadding="4" border="0" align="center" class="forumline">
 	<tr>
 		<th class="thCornerL">{L_RANK}</th>
         <th class="thTop">{L_RANK_MINIMUM}</th>

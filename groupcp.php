@@ -162,6 +162,16 @@ if ( isset($HTTP_POST_VARS['groupstatus']) && $group_id )
 		redirect(append_sid("login.$phpEx?redirect=groupcp.$phpEx&" . POST_GROUPS_URL . "=$group_id", true));
 	}
 
+	$submitted_token = isset($HTTP_POST_VARS['csrf_token']) ? $HTTP_POST_VARS['csrf_token'] : '';
+	$expected_token = phpbb_csrf_token(false);
+	if ($HTTP_SERVER_VARS['REQUEST_METHOD'] !== 'POST' || !is_string($submitted_token) || !preg_match('/\A[a-f0-9]{64}\z/', $submitted_token) || $expected_token === '' || !hash_equals($expected_token, $submitted_token)) {
+		message_die(GENERAL_MESSAGE, 'Formulario inv&aacute;lido o sesi&oacute;n vencida. Abra nuevamente el grupo.');
+	}
+
+	if (!isset($HTTP_POST_VARS['group_type']) || !is_string($HTTP_POST_VARS['group_type']) || !in_array($HTTP_POST_VARS['group_type'], array((string) GROUP_OPEN, (string) GROUP_CLOSED, (string) GROUP_HIDDEN), true)) {
+		message_die(GENERAL_MESSAGE, 'Tipo de grupo inv&aacute;lido.');
+	}
+
 	$sql = "SELECT group_moderator 
 		FROM " . GROUPS_TABLE . "  
 		WHERE group_id = $group_id";
@@ -171,6 +181,10 @@ if ( isset($HTTP_POST_VARS['groupstatus']) && $group_id )
 	}
 
 	$row = $db->sql_fetchrow($result);
+	$db->sql_freeresult($result);
+	if (!$row) {
+		message_die(GENERAL_MESSAGE, $lang['Group_not_exist']);
+	}
 
 	if ( $row['group_moderator'] != $userdata['user_id'] && $userdata['user_level'] != ADMIN )
 	{
@@ -916,6 +930,9 @@ else if ( $group_id )
 	generate_user_info($group_moderator, $board_config['default_dateformat'], $is_moderator, $from, $posts, $joined, $poster_avatar, $profile_img, $profile, $search_img, $search, $pm_img, $pm, $email_img, $email, $www_img, $www, $icq_status_img, $icq_img, $icq, $aim_img, $aim, $msn_img, $msn, $yim_img, $yim);
 
 	$s_hidden_fields .= '<input type="hidden" name="sid" value="' . $userdata['session_id'] . '" />';
+	if ($is_moderator && $userdata['session_logged_in']) {
+		$s_hidden_fields .= '<input type="hidden" name="csrf_token" value="' . phpbb_csrf_token() . '" />';
+	}
 
 	$template->assign_vars(array(
 		'L_GROUP_INFORMATION' => $lang['Group_Information'],

@@ -125,6 +125,7 @@ if ( !$is_auth['auth_read'] || !$is_auth['auth_view'] )
 //
 if ( $mark_read == 'topics' )
 {
+	phpbb_csrf_require_post();
 	if ( $userdata['session_logged_in'] )
 	{
 		$sql = "SELECT MAX(post_time) AS last_post 
@@ -172,13 +173,21 @@ $tracking_forums = ( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f'
 //
 // Do the forum Prune
 //
+$template->assign_vars(array('AUTO_PRUNE_FORM' => ''));
 if ( $is_auth['auth_mod'] && $board_config['prune_enable'] )
 {
 	if ( $forum_row['prune_next'] < time() && $forum_row['prune_enable'] )
 	{
-		include($phpbb_root_path . 'includes/prune.'.$phpEx);
-		require($phpbb_root_path . 'includes/functions_admin.'.$phpEx);
-		auto_prune($forum_id);
+		if (isset($HTTP_POST_VARS['run_auto_prune'])) {
+			phpbb_csrf_require_post();
+			include($phpbb_root_path . 'includes/prune.'.$phpEx);
+			require($phpbb_root_path . 'includes/functions_admin.'.$phpEx);
+			auto_prune($forum_id);
+		} else {
+			$prune_form = '<form method="post" action="' . phpbb_html(append_sid("viewforum.$phpEx?" . POST_FORUM_URL . "=$forum_id")) . '">' .
+				phpbb_csrf_hidden() . '<input type="submit" name="run_auto_prune" value="Ejecutar limpieza programada" /></form>';
+			$template->assign_vars(array('AUTO_PRUNE_FORM' => $prune_form));
+		}
 	}
 }
 //

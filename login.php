@@ -201,6 +201,7 @@ if( isset($HTTP_POST_VARS['login']) || isset($HTTP_GET_VARS['login']) || isset($
 		}
 	}
 	else if( ( isset($HTTP_GET_VARS['logout']) || isset($HTTP_POST_VARS['logout']) ) && $userdata['session_logged_in'] ) {
+		phpbb_csrf_require_post();
 		// session id check
 		if ($sid == '' || $sid != $userdata['session_id']) {
 			message_die(GENERAL_ERROR, 'Invalid_session');

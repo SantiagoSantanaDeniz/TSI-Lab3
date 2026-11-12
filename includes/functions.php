@@ -418,12 +418,14 @@ function init_userprefs($userdata)
 		{
 			if ( $theme = setup_style($userdata['user_style']) )
 			{
+				phpbb_csrf_request_guard();
 				return;
 			}
 		}
 	}
 
 	$theme = setup_style($board_config['default_style']);
+	phpbb_csrf_request_guard();
 
 	//
 	// Mozilla navigation bar
@@ -975,9 +977,7 @@ function phpbb_purify_html($html, $allowed_elements = null) {
     return $purifiers[$cache_key]->purify($html);
 }
 
-// Password policy applies when setting a password, not when checking an existing one.
-function phpbb_password_policy_error($password, $username)
-{
+function phpbb_password_policy_error($password, $username) {
     global $lang;
     if (!is_string($password) || !is_string($username) || strpos($password, "\0") !== false) {
         return 'Datos de contrase&ntilde;a invalidos.';
@@ -986,7 +986,9 @@ function phpbb_password_policy_error($password, $username)
     $length = strlen($password);
     if (strcasecmp($encoding, 'UTF-8') === 0 || strcasecmp($encoding, 'UTF8') === 0) {
         $length = preg_match_all('/./us', $password, $characters);
-        if ($length === false) { return 'Datos de contrase&ntilde;a invalidos.'; }
+        if ($length === false) { 
+			return 'Datos de contrase&ntilde;a invalidos.'; 
+		}
     }
     if ($length < 8) {
         return 'La contrase&ntilde;a debe tener al menos 8 caracteres.';
@@ -1038,50 +1040,57 @@ function phpbb_password_verify($password, $stored_hash) {
 	return password_verify($password, $stored_hash);
 }
 
-// Context-specific protection for the audited SQL and HTML flows (PHP 5.6).
-function phpbb_html($value, $double_encode = true)
-{
+function phpbb_html($value, $double_encode = true) {
     global $lang;
     $encoding = !empty($lang['ENCODING']) ? $lang['ENCODING'] : 'ISO-8859-1';
-    if ($value === null) { return ''; }
-    if (!is_scalar($value)) { return ''; }
+    if ($value === null) { 
+		return ''; 
+	}
+    if (!is_scalar($value)) { 
+		return ''; 
+	}
     return htmlspecialchars((string) $value, ENT_QUOTES, $encoding, $double_encode);
 }
 
-function phpbb_decoded_text($value)
-{
+function phpbb_decoded_text($value) {
     global $lang;
     $encoding = !empty($lang['ENCODING']) ? $lang['ENCODING'] : 'ISO-8859-1';
     return is_scalar($value) ? html_entity_decode((string) $value, ENT_QUOTES, $encoding) : '';
 }
 
-function phpbb_http_url($value)
-{
+function phpbb_http_url($value) {
     $value = trim(phpbb_decoded_text($value));
-    if ($value === '' || preg_match('/[\x00-\x20\x7f<>"\\\\]/', $value)) { return ''; }
+    if ($value === '' || preg_match('/[\x00-\x20\x7f<>"\\\\]/', $value)) { 
+		return ''; 
+	}
     $parts = @parse_url($value);
-    if (!$parts || empty($parts['host']) || empty($parts['scheme']) ||
-        !in_array(strtolower($parts['scheme']), array('http', 'https'), true)) { return ''; }
+    if (!$parts || empty($parts['host']) || empty($parts['scheme']) || !in_array(strtolower($parts['scheme']), array('http', 'https'), true)) { 
+		return ''; 
+	}
     return $value;
 }
 
-function phpbb_asset_url($value)
-{
+function phpbb_asset_url($value) {
     $value = trim(phpbb_decoded_text($value));
-    if ($value === '') { return ''; }
-    if (preg_match('#^https?://#i', $value)) { return phpbb_http_url($value); }
-    if (substr($value, 0, 2) === '//' || strpos($value, ':') !== false ||
-        preg_match('/[\x00-\x1f\x7f<>"\\\\]/', $value)) { return ''; }
+    if ($value === '') { 
+		return ''; 
+	}
+	
+    if (preg_match('#^https?://#i', $value)) { 
+		return phpbb_http_url($value); 
+	}
+	
+    if (substr($value, 0, 2) === '//' || strpos($value, ':') !== false || preg_match('/[\x00-\x1f\x7f<>"\\\\]/', $value)) { 
+		return ''; 
+	}
     return $value;
 }
 
-function phpbb_url_parameter($value)
-{
+function phpbb_url_parameter($value) {
     return rawurlencode(phpbb_decoded_text($value));
 }
 
-function phpbb_require_scalar_fields($values, $fields)
-{
+function phpbb_require_scalar_fields($values, $fields) {
     foreach ($fields as $field) {
         if (isset($values[$field]) && !is_string($values[$field])) {
             message_die(GENERAL_MESSAGE, 'Datos de formulario invalidos.');
@@ -1089,33 +1098,29 @@ function phpbb_require_scalar_fields($values, $fields)
     }
 }
 
-function phpbb_check_length($value, $maximum)
-{
+function phpbb_check_length($value, $maximum) {
     if (!is_string($value) || strlen($value) > $maximum) {
         message_die(GENERAL_MESSAGE, 'Un campo supera la longitud permitida.');
     }
 }
 
-function phpbb_id_list($values)
-{
+function phpbb_id_list($values) {
     if (!is_array($values)) { message_die(GENERAL_MESSAGE, 'Lista de identificadores invalida.'); }
     $ids = array();
     foreach ($values as $value) {
-        if ((!is_string($value) && !is_int($value)) ||
-            !preg_match('/\A(?:-1|[1-9][0-9]{0,9})\z/', (string) $value) ||
-            (float) $value > 2147483647) { message_die(GENERAL_MESSAGE, 'Identificador invalido.'); }
+        if ((!is_string($value) && !is_int($value)) || !preg_match('/\A(?:-1|[1-9][0-9]{0,9})\z/', (string) $value) || (float) $value > 2147483647) { 
+			message_die(GENERAL_MESSAGE, 'Identificador invalido.'); 
+		}
         $ids[] = (int) $value;
     }
     return $ids;
 }
 
-function phpbb_permission_map($values)
-{
+function phpbb_permission_map($values) {
     if (!is_array($values)) { message_die(GENERAL_MESSAGE, 'Permisos invalidos.'); }
     $result = array();
     foreach ($values as $id => $value) {
-        if (!preg_match('/\A[1-9][0-9]{0,9}\z/', (string) $id) || (float) $id > 2147483647 ||
-            !in_array($value, array('0', '1', 0, 1), true)) {
+        if (!preg_match('/\A[1-9][0-9]{0,9}\z/', (string) $id) || (float) $id > 2147483647 || !in_array($value, array('0', '1', 0, 1), true)) {
             message_die(GENERAL_MESSAGE, 'Permisos invalidos.');
         }
         $result[(int) $id] = (int) $value;
@@ -1123,16 +1128,14 @@ function phpbb_permission_map($values)
     return $result;
 }
 
-function phpbb_message_html($message, $html_enabled)
-{
+function phpbb_message_html($message, $html_enabled) {
     global $board_config;
     if (!$html_enabled) { return phpbb_html($message, false); }
     $allowed = preg_split('/\s*,\s*/', strtolower(trim($board_config['allow_html_tags'])), -1, PREG_SPLIT_NO_EMPTY);
     return phpbb_purify_html($message, $allowed);
 }
 
-function phpbb_style_fields()
-{
+function phpbb_style_fields() {
     return array('template_name', 'style_name', 'head_stylesheet', 'body_background',
         'body_bgcolor', 'body_text', 'body_link', 'body_vlink', 'body_alink', 'body_hlink',
         'tr_color1', 'tr_color2', 'tr_color3', 'tr_class1', 'tr_class2', 'tr_class3',
@@ -1146,54 +1149,182 @@ function phpbb_style_fields()
 function phpbb_template_name($name)
 {
     global $phpbb_root_path;
-    if (!is_string($name) || !preg_match('/\A[a-zA-Z_][a-zA-Z0-9_]*\z/', $name) ||
-        !is_dir($phpbb_root_path . 'templates/' . $name)) {
+    if (!is_string($name) || !preg_match('/\A[a-zA-Z_][a-zA-Z0-9_]*\z/', $name) || !is_dir($phpbb_root_path . 'templates/' . $name)) {
         message_die(GENERAL_MESSAGE, 'Plantilla invalida.');
     }
     return $name;
 }
 
-function phpbb_style_value($field, $value, $strict = true)
-{
+function phpbb_style_value($field, $value, $strict = true) {
     $valid = is_string($value) || is_int($value);
     $value = $valid ? (string) $value : '';
     if ($field === 'template_name') {
-        if (!$strict && (!preg_match('/\A[a-zA-Z_][a-zA-Z0-9_]*\z/', $value) ||
-            !is_dir($GLOBALS['phpbb_root_path'] . 'templates/' . $value))) { return 'subSilver'; }
+        if (!$strict && (!preg_match('/\A[a-zA-Z_][a-zA-Z0-9_]*\z/', $value) || !is_dir($GLOBALS['phpbb_root_path'] . 'templates/' . $value))) { 
+			return 'subSilver';
+		}
         return phpbb_template_name($value);
     }
-    if ($field === 'style_name') { $valid = $valid && strlen($value) <= 30; }
-    elseif (preg_match('/\A(?:fontsize[123]|img_size_(?:poll|privmsg))\z/', $field)) {
+    if ($field === 'style_name') { 
+		$valid = $valid && strlen($value) <= 30; 
+	} elseif (preg_match('/\A(?:fontsize[123]|img_size_(?:poll|privmsg))\z/', $field)) {
         $valid = $valid && preg_match('/\A[0-9]{1,4}\z/', $value);
-        if ($valid) { return (int) $value; }
-    }
-    elseif (preg_match('/\A(?:body_(?:bgcolor|text|link|vlink|alink|hlink)|[t][rhd]_color[123]|fontcolor[123])\z/', $field)) {
+        if ($valid) { 
+			return (int) $value; 
+		}
+    } elseif (preg_match('/\A(?:body_(?:bgcolor|text|link|vlink|alink|hlink)|[t][rhd]_color[123]|fontcolor[123])\z/', $field)) {
         $value = ltrim($value, '#');
         $valid = $valid && ($value === '' || preg_match('/\A(?:[a-fA-F0-9]{3}|[a-fA-F0-9]{6})\z/', $value));
-    }
-    elseif (preg_match('/\Afontface[123]\z/', $field)) {
-        // Font family lists can contain spaces; remove optional quote wrappers.
+    } elseif (preg_match('/\Afontface[123]\z/', $field)) {
         $value = str_replace(array("\\'", '\\"', "'", '"'), '', $value);
         $valid = $valid && strlen($value) <= 100 && preg_match('/\A[a-zA-Z0-9_, -]*\z/', $value);
-    }
-    else {
-        // These values occur in unquoted CSS url(...) as well as HTML attributes.
-        $valid = $valid && strlen($value) <= 255 && preg_match('/\A[a-zA-Z0-9_.\/%+\/-]*\z/', $value) &&
-            !preg_match('#(?:\A|/)\.\.(?:/|\z)#', $value) && substr($value, 0, 2) !== '//';
+    } else {
+
+        $valid = $valid && strlen($value) <= 255 && preg_match('/\A[a-zA-Z0-9_.\/%+\/-]*\z/', $value) && !preg_match('#(?:\A|/)\.\.(?:/|\z)#', $value) && substr($value, 0, 2) !== '//';
     }
     if (!$valid) {
-        if ($strict) { message_die(GENERAL_MESSAGE, 'Valor de estilo invalido.'); }
+        if ($strict) { 
+			message_die(GENERAL_MESSAGE, 'Valor de estilo invalido.'); 
+		}
         return preg_match('/\A(?:fontsize|img_size)/', $field) ? 0 : '';
     }
     return $value;
 }
 
-function phpbb_style_row($row, $strict = true)
-{
+function phpbb_style_row($row, $strict = true) {
     foreach (phpbb_style_fields() as $field) {
-        if (isset($row[$field])) { $row[$field] = phpbb_style_value($field, $row[$field], $strict); }
+        if (isset($row[$field])) { 
+			$row[$field] = phpbb_style_value($field, $row[$field], $strict); 
+		}
     }
     return $row;
+}
+
+// Every POST uses the session token, including previews and multipart forms.
+function phpbb_csrf_valid($method, $submitted, $expected)
+{
+    return $method === 'POST' && is_string($submitted) && is_string($expected) &&
+        preg_match('/\A[a-f0-9]{64}\z/', $submitted) &&
+        preg_match('/\A[a-f0-9]{64}\z/', $expected) && hash_equals($expected, $submitted);
+}
+
+function phpbb_csrf_require_post()
+{
+    global $HTTP_SERVER_VARS, $HTTP_POST_VARS;
+    $token = isset($HTTP_POST_VARS['csrf_token']) ? $HTTP_POST_VARS['csrf_token'] : '';
+    if (!phpbb_csrf_valid($HTTP_SERVER_VARS['REQUEST_METHOD'], $token, phpbb_csrf_token(false))) {
+        header('HTTP/1.1 403 Forbidden');
+        message_die(GENERAL_MESSAGE, 'Formulario inv&aacute;lido o sesi&oacute;n vencida. Abra nuevamente el formulario.');
+        exit;
+    }
+}
+
+function phpbb_csrf_hidden()
+{
+    return '<input type="hidden" name="csrf_token" value="' . phpbb_csrf_token() . '" />';
+}
+
+// The URL carries only routing parameters; the secret is submitted in the body.
+function phpbb_csrf_confirm_action($description)
+{
+    global $HTTP_SERVER_VARS;
+    $script = basename($HTTP_SERVER_VARS['SCRIPT_NAME']);
+    if (!preg_match('/\A[a-zA-Z0-9_]+\.php\z/', $script)) {
+        message_die(GENERAL_MESSAGE, 'Ruta inv&aacute;lida.');
+        exit;
+    }
+    $query = isset($HTTP_SERVER_VARS['QUERY_STRING']) ? $HTTP_SERVER_VARS['QUERY_STRING'] : '';
+    $action = $script . ($query !== '' ? '?' . $query : '');
+    $form = '<form method="post" action="' . phpbb_html($action) . '">' .
+        phpbb_csrf_hidden() . '<p>' . phpbb_html($description, false) . '</p>' .
+        '<input type="submit" name="csrf_confirm" value="Confirmar" /></form>';
+    header('X-Frame-Options: SAMEORIGIN');
+    message_die(GENERAL_MESSAGE, $form);
+    exit;
+}
+
+// GET links may open a confirmation but cannot execute the requested action.
+function phpbb_csrf_get_action($script, $get, $admin)
+{
+    if (($script === 'index.php' || $script === 'viewforum.php') && isset($get['mark'])) {
+        return 'Marcar como le&#237;dos';
+    }
+    if ($script === 'viewtopic.php' && (isset($get['watch']) || isset($get['unwatch']))) {
+        return 'Cambiar el seguimiento del tema';
+    }
+    if ($script === 'login.php' && isset($get['logout'])) {
+        return 'Cerrar sesi&#243;n';
+    }
+    if ($script === 'profile.php' && isset($get['mode']) && $get['mode'] === 'activate') {
+        return 'Activar la cuenta o la contrase&#241;a recuperada';
+    }
+    if ($script === 'modcp.php' && isset($get['mode']) &&
+        in_array($get['mode'], array('lock', 'unlock'), true)) {
+        return 'Cambiar el bloqueo del tema';
+    }
+    if ($script === 'search.php' && (isset($get['search_keywords']) || isset($get['search_author']) ||
+        (isset($get['search_id']) && in_array($get['search_id'], array('newposts', 'egosearch', 'unanswered'), true)))) {
+        return 'Ejecutar la b&#250;squeda';
+    }
+    // Reading a private message changes counters, its type and the sender's box.
+    if ($script === 'privmsg.php' && isset($get['mode']) && $get['mode'] === 'read') {
+        return 'Abrir el mensaje privado y marcarlo como le&#237;do';
+    }
+    if (!$admin) {
+        return '';
+    }
+    $modes = array(
+        'admin_forums.php' => array('createforum', 'modforum', 'addcat', 'modcat',
+            'movedelforum', 'movedelcat', 'forum_order', 'cat_order', 'forum_sync'),
+        'admin_styles.php' => array('addnew'),
+        'admin_smilies.php' => array('save', 'savenew'),
+        'admin_ranks.php' => array('save'),
+        'admin_words.php' => array('save')
+    );
+    if (isset($modes[$script], $get['mode']) && in_array($get['mode'], $modes[$script], true)) {
+        return 'Aplicar el cambio administrativo';
+    }
+    if ($script === 'admin_smilies.php' && isset($get['import_pack']) && !empty($get['smile_pak'])) {
+        return 'Importar el paquete de emoticonos';
+    }
+    if ($script === 'admin_db_utilities.php' && (isset($get['backupstart']) || isset($get['startdownload']))) {
+        return 'Generar o descargar la copia de la base de datos';
+    }
+    return '';
+}
+
+function phpbb_csrf_request_guard()
+{
+    global $HTTP_SERVER_VARS, $HTTP_GET_VARS, $userdata, $template;
+    static $checked = false;
+    if ($checked) {
+        $template->assign_vars(array('CSRF_HIDDEN' => phpbb_csrf_hidden()));
+        return;
+    }
+    $checked = true;
+    $method = isset($HTTP_SERVER_VARS['REQUEST_METHOD']) ? $HTTP_SERVER_VARS['REQUEST_METHOD'] : 'GET';
+    if ($method === 'POST') {
+        phpbb_csrf_require_post();
+    } elseif ($method !== 'GET' && $method !== 'HEAD') {
+        header('HTTP/1.1 405 Method Not Allowed');
+        header('Allow: GET, HEAD, POST');
+        message_die(GENERAL_MESSAGE, 'M&eacute;todo no permitido.');
+        exit;
+    }
+    header('Cache-Control: private, no-store');
+    $template->assign_vars(array('CSRF_HIDDEN' => phpbb_csrf_hidden()));
+    if ($method !== 'POST') {
+        $script = basename($HTTP_SERVER_VARS['SCRIPT_NAME']);
+        $admin = defined('IN_ADMIN') && !empty($userdata['session_admin']) && $userdata['user_level'] == ADMIN;
+        $description = phpbb_csrf_get_action($script, $HTTP_GET_VARS, $admin);
+        if ($description !== '') {
+            if ($method !== 'GET') {
+                header('HTTP/1.1 405 Method Not Allowed');
+                message_die(GENERAL_MESSAGE, 'Esta operaci&oacute;n requiere POST.');
+                exit;
+            }
+            phpbb_csrf_confirm_action($description);
+        }
+    }
 }
 
 ?>

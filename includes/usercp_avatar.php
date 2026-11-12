@@ -383,6 +383,10 @@ function display_avatar_gallery($mode, &$category, &$user_id, &$email, &$current
 
 	$s_hidden_vars = '<input type="hidden" name="sid" value="' . $session_id . '" /><input type="hidden" name="agreed" value="true" /><input type="hidden" name="avatarcatname" value="' . phpbb_html($category) . '" />';
 
+	if ($mode == 'editprofile') {
+		$s_hidden_vars .= '<input type="hidden" name="csrf_token" value="' . phpbb_csrf_token() . '" />';
+	}
+
 	for($i = 0; $i < count($params); $i++)
 	{
 		$s_hidden_vars .= '<input type="hidden" name="' . $params[$i] . '" value="' . phpbb_html(${$params[$i]}, false) . '" />';

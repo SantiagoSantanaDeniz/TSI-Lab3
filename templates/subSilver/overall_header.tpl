@@ -114,6 +114,9 @@ a.gen:hover,a.genmed:hover,a.gensmall:hover	{ color: {T_BODY_HLINK}; text-decora
 .mainmenu		{ font-size : {T_FONTSIZE2}px; color : {T_BODY_TEXT} }
 a.mainmenu		{ text-decoration: none; color : {T_BODY_LINK};  }
 a.mainmenu:hover{ text-decoration: underline; color : {T_BODY_HLINK}; }
+form.logout-form { display: inline; margin: 0; padding: 0; }
+button.logout-button { background: transparent; border: 0; padding: 0; color: {T_BODY_LINK}; font-family: {T_FONTFACE1}; cursor: pointer; }
+button.logout-button:hover { text-decoration: underline; color: {T_BODY_HLINK}; }
 
 /* Forum category titles */
 .cattitle		{ font-weight: bold; font-size: {T_FONTSIZE3}px ; letter-spacing: 1px; color : {T_BODY_LINK}}
@@ -239,7 +242,18 @@ input.liteoption {
 						</span></td>
 					</tr>
 					<tr>
-						<td height="25" align="center" valign="top" nowrap="nowrap"><span class="mainmenu">&nbsp;<a href="{U_PROFILE}" class="mainmenu"><img src="templates/subSilver/images/icon_mini_profile.gif" width="12" height="13" border="0" alt="{L_PROFILE}" hspace="3" />{L_PROFILE}</a>&nbsp; &nbsp;<a href="{U_PRIVATEMSGS}" class="mainmenu"><img src="templates/subSilver/images/icon_mini_message.gif" width="12" height="13" border="0" alt="{PRIVATE_MESSAGE_INFO}" hspace="3" />{PRIVATE_MESSAGE_INFO}</a>&nbsp; &nbsp;<a href="{U_LOGIN_LOGOUT}" class="mainmenu"><img src="templates/subSilver/images/icon_mini_login.gif" width="12" height="13" border="0" alt="{L_LOGIN_LOGOUT}" hspace="3" />{L_LOGIN_LOGOUT}</a>&nbsp;</span></td>
+						<td height="25" align="center" valign="top" nowrap="nowrap"><span class="mainmenu">&nbsp;<a href="{U_PROFILE}" class="mainmenu"><img src="templates/subSilver/images/icon_mini_profile.gif" width="12" height="13" border="0" alt="{L_PROFILE}" hspace="3" />{L_PROFILE}</a>&nbsp; &nbsp;<a href="{U_PRIVATEMSGS}" class="mainmenu"><img src="templates/subSilver/images/icon_mini_message.gif" width="12" height="13" border="0" alt="{PRIVATE_MESSAGE_INFO}" hspace="3" />{PRIVATE_MESSAGE_INFO}</a>&nbsp; &nbsp;</span>
+						<!-- BEGIN switch_user_logged_out -->
+						<a href="{U_LOGIN_LOGOUT}" class="mainmenu"><img src="templates/subSilver/images/icon_mini_login.gif" width="12" height="13" border="0" alt="{L_LOGIN_LOGOUT}" hspace="3" />{L_LOGIN_LOGOUT}</a>
+						<!-- END switch_user_logged_out -->
+						<!-- BEGIN switch_user_logged_in -->
+						<form method="post" action="{S_LOGOUT_ACTION}" class="logout-form">{CSRF_HIDDEN}
+						<input type="hidden" name="logout" value="true" />
+						<input type="hidden" name="sid" value="{LOGOUT_SID}" />
+						<button type="submit" class="mainmenu logout-button"><img src="templates/subSilver/images/icon_mini_login.gif" width="12" height="13" border="0" alt="" hspace="3" />{L_LOGIN_LOGOUT}</button>
+						</form>
+						<!-- END switch_user_logged_in -->
+						&nbsp;</td>
 					</tr>
 				</table></td>
 			</tr>

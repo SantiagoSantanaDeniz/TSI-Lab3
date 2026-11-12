@@ -3,7 +3,7 @@
 
 <h2>{L_USER_OR_GROUPNAME}: {USERNAME}</h2>
 
-<form method="post" action="{S_AUTH_ACTION}">
+<form method="post" action="{S_AUTH_ACTION}">{CSRF_HIDDEN}
 
 <!-- BEGIN switch_user_auth -->
 <p>{USER_LEVEL}</p>

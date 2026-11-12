@@ -98,6 +98,14 @@ isset($HTTP_POST_VARS['Submit']) ||
 	isset($HTTP_POST_VARS['cancelavatar']) ||
 	$mode == 'register' )
 {
+	if ($mode == 'editprofile') {
+		$submitted_token = isset($HTTP_POST_VARS['csrf_token']) ? $HTTP_POST_VARS['csrf_token'] : '';
+		$expected_token = phpbb_csrf_token(false);
+		if ($HTTP_SERVER_VARS['REQUEST_METHOD'] !== 'POST' || !is_string($submitted_token) || !preg_match('/\A[a-f0-9]{64}\z/', $submitted_token) || $expected_token === '' || !hash_equals($expected_token, $submitted_token)) {
+			message_die(GENERAL_MESSAGE, 'Formulario inv&aacute;lido o sesi&oacute;n vencida. Abra nuevamente el perfil.');
+		}
+	}
+
 	include($phpbb_root_path . 'includes/functions_validate.'.$phpEx);
 	include($phpbb_root_path . 'includes/bbcode.'.$phpEx);
 	include($phpbb_root_path . 'includes/functions_post.'.$phpEx);
@@ -312,7 +320,7 @@ if ( isset($HTTP_POST_VARS['Submit']) )
 	include($phpbb_root_path . 'includes/usercp_avatar.'.$phpEx);
 
 	// session id check
-	if ($sid == '' || $sid != $userdata['session_id'])
+	if ($mode == 'register' && ($sid == '' || $sid != $userdata['session_id']))
 	{
 		$error = true;
 		$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Session_invalid'];
@@ -1055,6 +1063,7 @@ else
 
 	if( $mode == 'editprofile' )
 	{
+		$s_hidden_fields .= '<input type="hidden" name="csrf_token" value="' . phpbb_csrf_token() . '" />';
 		$s_hidden_fields .= '<input type="hidden" name="user_id" value="' . $userdata['user_id'] . '" />';
 		//
 		// Send the users current email address. If they change it, and account activation is turned on

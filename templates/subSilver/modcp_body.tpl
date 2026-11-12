@@ -1,5 +1,5 @@
 
-<form method="post" action="{S_MODCP_ACTION}">
+<form method="post" action="{S_MODCP_ACTION}">{CSRF_HIDDEN}
 <table width="100%" cellspacing="2" cellpadding="2" border="0" align="center">
   <tr> 
 	<td align="left"><span class="nav"><a href="{U_INDEX}" class="nav">{L_INDEX}</a> -> <a href="{U_VIEW_FORUM}" class="nav">{FORUM_NAME}</a></span></td>

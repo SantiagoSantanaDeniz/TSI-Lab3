@@ -75,6 +75,7 @@ switch( $mode )
 	
 		if( isset($install_to) )
 		{
+			phpbb_csrf_require_post();
 
 			$install_to = phpbb_template_name($install_to);
 			include($phpbb_root_path. "templates/" . basename($install_to) . "/theme_info.cfg");
@@ -756,7 +757,7 @@ switch( $mode )
 				$s_hidden_fields = '<input type="hidden" name="theme_info" value="' . htmlspecialchars($theme_data) . '" />';
 				$s_hidden_fields .= '<input type="hidden" name="send_file" value="1" /><input type="hidden" name="mode" value="export" />';
 				
-				$download_form = '<form action="' . append_sid("admin_styles.$phpEx") . '" method="post"><input class="mainoption" type="submit" name="submit" value="' . $lang['Download'] . '" />' . $s_hidden_fields;
+				$download_form = '<form action="' . append_sid("admin_styles.$phpEx") . '" method="post">' . phpbb_csrf_hidden() . '<input class="mainoption" type="submit" name="submit" value="' . $lang['Download'] . '" />' . $s_hidden_fields;
 
 				$template->set_filenames(array(
 					"body" => "message_body.tpl")

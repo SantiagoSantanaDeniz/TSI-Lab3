@@ -175,6 +175,7 @@ if ( $mode == 'newpm' )
 }
 else if ( $mode == 'read' )
 {
+	phpbb_csrf_require_post();
 	if ( !empty($HTTP_GET_VARS[POST_POST_URL]) )
 	{
 		$privmsgs_id = intval($HTTP_GET_VARS[POST_POST_URL]);
@@ -1849,6 +1850,7 @@ if ( !$userdata['session_logged_in'] )
 //
 // Update unread status 
 //
+if ($HTTP_SERVER_VARS['REQUEST_METHOD'] === 'POST') {
 $sql = "UPDATE " . USERS_TABLE . "
 	SET user_unread_privmsg = user_unread_privmsg + user_new_privmsg, user_new_privmsg = 0, user_last_privmsg = " . $userdata['session_start'] . " 
 	WHERE user_id = " . $userdata['user_id'];
@@ -1871,6 +1873,7 @@ if ( !$db->sql_query($sql) )
 //
 $userdata['user_new_privmsg'] = 0;
 $userdata['user_unread_privmsg'] = ( $userdata['user_new_privmsg'] + $userdata['user_unread_privmsg'] );
+}
 
 //
 // Generate page

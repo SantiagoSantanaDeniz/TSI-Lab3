@@ -14,7 +14,7 @@
 
 <br clear="all" />
 
-<form method="post" action="{S_PRIVMSGS_ACTION}">
+<form method="post" action="{S_PRIVMSGS_ACTION}">{CSRF_HIDDEN}
 <table width="100%" cellspacing="2" cellpadding="2" border="0">
   <tr>
 	  <td valign="middle">{REPLY_PM_IMG}</td>

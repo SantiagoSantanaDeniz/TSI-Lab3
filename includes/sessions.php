@@ -319,6 +319,20 @@ function session_pagestart($user_ip, $thispage_id)
 
 		$userdata = $db->sql_fetchrow($result);
 
+		if (isset($userdata['user_id']) && (int) $userdata['session_time'] <= $current_time - (int) $board_config['session_length']) {
+			$sql = "DELETE FROM " . SESSIONS_TABLE . " WHERE session_id = '$session_id'";
+			if (!$db->sql_query($sql)) {
+				message_die(CRITICAL_ERROR, 'Error removing expired session', '', __LINE__, __FILE__, $sql);
+			}
+
+			if ($sessionmethod == SESSION_METHOD_COOKIE) {
+				$HTTP_COOKIE_VARS[$cookiename . '_sid'] = '';
+			} else {
+				$HTTP_GET_VARS['sid'] = '';
+			}
+			unset($userdata);
+		}
+
 		//
 		// Did the session exist in the DB?
 		//
@@ -341,11 +355,8 @@ function session_pagestart($user_ip, $thispage_id)
 				//
 				if ( $current_time - $userdata['session_time'] > 60 )
 				{
-					// A little trick to reset session_admin on session re-usage
-					$update_admin = (!defined('IN_ADMIN') && $current_time - $userdata['session_time'] > ($board_config['session_length']+60)) ? ', session_admin = 0' : '';
-
 					$sql = "UPDATE " . SESSIONS_TABLE . " 
-						SET session_time = $current_time, session_page = $thispage_id$update_admin
+						SET session_time = $current_time, session_page = $thispage_id
 						WHERE session_id = '" . $userdata['session_id'] . "'";
 					if ( !$db->sql_query($sql) )
 					{

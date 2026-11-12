@@ -1,5 +1,5 @@
  
-<form action="{S_GROUPCP_ACTION}" method="post">
+<form action="{S_GROUPCP_ACTION}" method="post">{CSRF_HIDDEN}
 
 <table width="100%" cellspacing="2" cellpadding="2" border="0" align="center">
 	<tr>
@@ -42,7 +42,7 @@
 
 </form>
 
-<form action="{S_GROUPCP_ACTION}" method="post" name="post">
+<form action="{S_GROUPCP_ACTION}" method="post" name="post">{CSRF_HIDDEN}
 <table width="100%" cellpadding="4" cellspacing="1" border="0" class="forumline">
 	<tr> 
 	  <th class="thCornerL" height="25">{L_PM}</th>

@@ -625,6 +625,7 @@ switch( $mode )
 		break;
 
 	case 'lock':
+		phpbb_csrf_require_post();
 		if ( empty($HTTP_POST_VARS['topic_id_list']) && empty($topic_id) )
 		{
 			message_die(GENERAL_MESSAGE, $lang['None_selected']);
@@ -670,6 +671,7 @@ switch( $mode )
 		break;
 
 	case 'unlock':
+		phpbb_csrf_require_post();
 		if ( empty($HTTP_POST_VARS['topic_id_list']) && empty($topic_id) )
 		{
 			message_die(GENERAL_MESSAGE, $lang['None_selected']);

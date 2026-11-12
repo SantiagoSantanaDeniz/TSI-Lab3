@@ -3,7 +3,7 @@
 
 <p>{L_THEMES_EXPLAIN}</p>
 
-<form action="{S_THEME_ACTION}" method="POST"><table width="99%" cellpadding="4" cellspacing="1" border="0" align="center" class="forumline">
+<form action="{S_THEME_ACTION}" method="POST">{CSRF_HIDDEN}<table width="99%" cellpadding="4" cellspacing="1" border="0" align="center" class="forumline">
 	<tr>
 	  <th class="thHead" colspan="3">{L_THEME_SETTINGS}</th>
 	</tr>

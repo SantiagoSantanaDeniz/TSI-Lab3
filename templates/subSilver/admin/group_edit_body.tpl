@@ -1,7 +1,7 @@
 
 <h1>{L_GROUP_TITLE}</h1>
 
-<form action="{S_GROUP_ACTION}" method="post" name="post"><table border="0" cellpadding="3" cellspacing="1" class="forumline" align="center">
+<form action="{S_GROUP_ACTION}" method="post" name="post">{CSRF_HIDDEN}<table border="0" cellpadding="3" cellspacing="1" class="forumline" align="center">
 	<tr> 
 	  <th class="thHead" colspan="2">{L_GROUP_EDIT_DELETE}</th>
 	</tr>

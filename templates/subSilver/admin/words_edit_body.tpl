@@ -3,7 +3,7 @@
 
 <p>{L_WORDS_TEXT}</p>
 
-<form method="post" action="{S_WORDS_ACTION}"><table cellspacing="1" cellpadding="4" border="0" align="center" class="forumline">
+<form method="post" action="{S_WORDS_ACTION}">{CSRF_HIDDEN}<table cellspacing="1" cellpadding="4" border="0" align="center" class="forumline">
 	<tr>
 		<th colspan="2" class="thHead">{L_WORD_CENSOR}</th>
 	</tr>

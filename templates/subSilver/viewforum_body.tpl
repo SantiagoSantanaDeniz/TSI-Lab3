@@ -1,5 +1,5 @@
 
-<form method="post" action="{S_POST_DAYS_ACTION}">
+<form method="post" action="{S_POST_DAYS_ACTION}">{CSRF_HIDDEN}
   <table width="100%" cellspacing="2" cellpadding="2" border="0" align="center">
 	<tr> 
 	  <td align="left" valign="bottom" colspan="2"><a class="maintitle" href="{U_VIEW_FORUM}">{FORUM_NAME}</a><br /><span class="gensmall"><b>{L_MODERATOR}: {MODERATORS}<br /><br />{LOGGED_IN_USER_LIST}</b></span></td>
@@ -55,6 +55,7 @@
 	</tr>
   </table>
 </form>
+{AUTO_PRUNE_FORM}
 
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
   <tr> 

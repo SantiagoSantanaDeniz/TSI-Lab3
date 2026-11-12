@@ -656,6 +656,10 @@ if( isset($HTTP_GET_VARS['perform']) || isset($HTTP_POST_VARS['perform']) )
 	switch($perform)
 	{
 		case 'backup':
+			if (isset($HTTP_GET_VARS['backupstart']) || isset($HTTP_GET_VARS['startdownload']) ||
+				isset($HTTP_POST_VARS['backupstart']) || isset($HTTP_POST_VARS['startdownload'])) {
+				phpbb_csrf_require_post();
+			}
 
 			$error = false;
 			switch(SQL_LAYER)
