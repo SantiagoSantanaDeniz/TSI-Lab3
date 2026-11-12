@@ -1072,10 +1072,12 @@ function phpbb_asset_url($value) {
     $value = trim(phpbb_decoded_text($value));
     if ($value === '') { 
 		return ''; 
-	}e
+	}
+	
     if (preg_match('#^https?://#i', $value)) { 
 		return phpbb_http_url($value); 
 	}
+	
     if (substr($value, 0, 2) === '//' || strpos($value, ':') !== false || preg_match('/[\x00-\x1f\x7f<>"\\\\]/', $value)) { 
 		return ''; 
 	}
