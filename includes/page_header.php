@@ -313,25 +313,19 @@ else
 //
 // Generate HTML required for Mozilla Navigation bar
 //
-if (!isset($nav_links))
-{
+if (!isset($nav_links)) {
 	$nav_links = array();
 }
 
 $nav_links_html = '';
 $nav_link_proto = '<link rel="%s" href="%s" title="%s" />' . "\n";
-while( list($nav_item, $nav_array) = @each($nav_links) )
-{
-	if ( !empty($nav_array['url']) )
-	{
-		$nav_links_html .= sprintf($nav_link_proto, $nav_item, append_sid($nav_array['url']), $nav_array['title']);
-	}
-	else
-	{
+while( list($nav_item, $nav_array) = @each($nav_links) ) {
+	if ( !empty($nav_array['url']) ) {
+		$nav_links_html .= sprintf($nav_link_proto, $nav_item, append_sid($nav_array['url']), htmlspecialchars($nav_array['title'], ENT_QUOTES, $lang['ENCODING']));
+	} else {
 		// We have a nested array, used for items like <link rel='chapter'> that can occur more than once.
-		while( list(,$nested_array) = each($nav_array) )
-		{
-			$nav_links_html .= sprintf($nav_link_proto, $nav_item, $nested_array['url'], $nested_array['title']);
+		while( list(,$nested_array) = each($nav_array) ) {
+			$nav_links_html .= sprintf($nav_link_proto, $nav_item, $nested_array['url'], htmlspecialchars($nested_array['title'], ENT_QUOTES, $lang['ENCODING']));
 		}
 	}
 }
@@ -344,8 +338,8 @@ $l_timezone = (count($l_timezone) > 1 && $l_timezone[count($l_timezone)-1] != 0)
 // in a template.
 //
 $template->assign_vars(array(
-	'SITENAME' => $board_config['sitename'],
-	'SITE_DESCRIPTION' => $board_config['site_desc'],
+	'SITENAME' => htmlspecialchars($board_config['sitename'], ENT_QUOTES, $lang['ENCODING']),
+	'SITE_DESCRIPTION' => htmlspecialchars($board_config['site_desc'], ENT_QUOTES, $lang['ENCODING']),
 	'PAGE_TITLE' => $page_title,
 	'LAST_VISIT_DATE' => sprintf($lang['You_last_visit'], $s_last_visit),
 	'CURRENT_TIME' => sprintf($lang['Current_time'], create_date($board_config['default_dateformat'], time(), $board_config['board_timezone'])),
@@ -364,7 +358,7 @@ $template->assign_vars(array(
 	'L_LOGIN' => $lang['Login'],
 	'L_LOG_ME_IN' => $lang['Log_me_in'],
 	'L_AUTO_LOGIN' => $lang['Log_me_in'],
-	'L_INDEX' => sprintf($lang['Forum_Index'], $board_config['sitename']),
+	'L_INDEX' => sprintf($lang['Forum_Index'], htmlspecialchars($board_config['sitename'], ENT_QUOTES, $lang['ENCODING'])),
 	'L_REGISTER' => $lang['Register'],
 	'L_PROFILE' => $lang['Profile'],
 	'L_SEARCH' => $lang['Search'],

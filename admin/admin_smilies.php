@@ -320,7 +320,7 @@ else if( isset($HTTP_POST_VARS['add']) || isset($HTTP_GET_VARS['add']) )
 		"L_SUBMIT" => $lang['Submit'],
 		"L_RESET" => $lang['Reset'],
 
-		"SMILEY_IMG" => $phpbb_root_path . $board_config['smilies_path'] . '/' . $smiley_images[0], 
+		"SMILEY_IMG" => htmlspecialchars($phpbb_root_path . $board_config['smilies_path'] . '/' . $smiley_images[0], ENT_QUOTES, $lang['ENCODING']),
 
 		"S_SMILEY_ACTION" => append_sid("admin_smilies.$phpEx"), 
 		"S_HIDDEN_FIELDS" => $s_hidden_fields, 
@@ -393,38 +393,31 @@ else if ( $mode != "" )
 				FROM " . SMILIES_TABLE . "
 				WHERE smilies_id = " . $smiley_id;
 			$result = $db->sql_query($sql);
-			if( !$result )
-			{
+			if( !$result ) {
 				message_die(GENERAL_ERROR, 'Could not obtain emoticon information', "", __LINE__, __FILE__, $sql);
 			}
 			$smile_data = $db->sql_fetchrow($result);
 
 			$filename_list = "";
-			for( $i = 0; $i < count($smiley_images); $i++ )
-			{
-				if( $smiley_images[$i] == $smile_data['smile_url'] )
-				{
+			for( $i = 0; $i < count($smiley_images); $i++ ) {
+				if( $smiley_images[$i] == $smile_data['smile_url'] ) {
 					$smiley_selected = "selected=\"selected\"";
 					$smiley_edit_img = $smiley_images[$i];
-				}
-				else
-				{
+				} else {
 					$smiley_selected = "";
 				}
 
 				$filename_list .= '<option value="' . $smiley_images[$i] . '"' . $smiley_selected . '>' . $smiley_images[$i] . '</option>';
 			}
 
-			$template->set_filenames(array(
-				"body" => "admin/smile_edit_body.tpl")
-			);
+			$template->set_filenames(array("body" => "admin/smile_edit_body.tpl"));
 
 			$s_hidden_fields = '<input type="hidden" name="mode" value="save" /><input type="hidden" name="smile_id" value="' . $smile_data['smilies_id'] . '" />';
 
 			$template->assign_vars(array(
-				"SMILEY_CODE" => $smile_data['code'],
-				"SMILEY_EMOTICON" => $smile_data['emoticon'],
-
+				"SMILEY_CODE" => htmlspecialchars($smile_data['code'], ENT_QUOTES, $lang['ENCODING'], false),
+				"SMILEY_EMOTICON" => htmlspecialchars($smile_data['emoticon'], ENT_QUOTES, $lang['ENCODING'], false),
+				
 				"L_SMILEY_TITLE" => $lang['smiley_title'],
 				"L_SMILEY_CONFIG" => $lang['smiley_config'],
 				"L_SMILEY_EXPLAIN" => $lang['smile_desc'],
@@ -434,7 +427,7 @@ else if ( $mode != "" )
 				"L_SUBMIT" => $lang['Submit'],
 				"L_RESET" => $lang['Reset'],
 
-				"SMILEY_IMG" => $phpbb_root_path . $board_config['smilies_path'] . '/' . $smiley_edit_img, 
+				"SMILEY_IMG" => htmlspecialchars($phpbb_root_path . $board_config['smilies_path'] . '/' . $smiley_edit_img, ENT_QUOTES, $lang['ENCODING']),
 
 				"S_SMILEY_ACTION" => append_sid("admin_smilies.$phpEx"),
 				"S_HIDDEN_FIELDS" => $s_hidden_fields, 
@@ -607,10 +600,10 @@ else
 			"ROW_COLOR" => "#" . $row_color,
 			"ROW_CLASS" => $row_class,
 			
-			"SMILEY_IMG" =>  $phpbb_root_path . $board_config['smilies_path'] . '/' . $smilies[$i]['smile_url'], 
-			"CODE" => $smilies[$i]['code'],
-			"EMOT" => $smilies[$i]['emoticon'],
-			
+			"SMILEY_IMG" => htmlspecialchars($phpbb_root_path . $board_config['smilies_path'] . '/' . $smilies[$i]['smile_url'], ENT_QUOTES, $lang['ENCODING']),
+			"CODE" => htmlspecialchars($smilies[$i]['code'], ENT_QUOTES, $lang['ENCODING']),
+			"EMOT" => htmlspecialchars($smilies[$i]['emoticon'], ENT_QUOTES, $lang['ENCODING'], false),
+
 			"U_SMILEY_EDIT" => append_sid("admin_smilies.$phpEx?mode=edit&amp;id=" . $smilies[$i]['smilies_id']), 
 			"U_SMILEY_DELETE" => append_sid("admin_smilies.$phpEx?mode=delete&amp;id=" . $smilies[$i]['smilies_id']))
 		);

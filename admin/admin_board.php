@@ -340,7 +340,9 @@ $disable_board_no = ( !$new['board_disable'] ) ? "checked=\"checked\"" : "";
 $cookie_secure_yes = ( $new['cookie_secure'] ) ? "checked=\"checked\"" : "";
 $cookie_secure_no = ( !$new['cookie_secure'] ) ? "checked=\"checked\"" : "";
 
-$html_tags = $new['allow_html_tags'];
+// Comienzo XSS-08
+$html_tags = htmlspecialchars($new['allow_html_tags'], ENT_QUOTES, $lang['ENCODING']);
+// Fin XSS-08
 
 $override_user_style_yes = ( $new['override_user_style'] ) ? "checked=\"checked\"" : "";
 $override_user_style_no = ( !$new['override_user_style'] ) ? "checked=\"checked\"" : "";
@@ -400,8 +402,12 @@ $template->set_filenames(array(
 // Escape any quotes in the site description for proper display in the text
 // box on the admin page 
 //
-$new['site_desc'] = str_replace('"', '&quot;', $new['site_desc']);
-$new['sitename'] = str_replace('"', '&quot;', strip_tags($new['sitename']));
+
+// Comienzo XSS-07, XSS-08
+foreach ($new as $config_key => $config_value) {
+	$new[$config_key] = htmlspecialchars($config_value, ENT_QUOTES, $lang['ENCODING']);
+}
+// Fin XSS-07, XSS-08
 $template->assign_vars(array(
 	"S_CONFIG_ACTION" => append_sid("admin_board.$phpEx"),
 
