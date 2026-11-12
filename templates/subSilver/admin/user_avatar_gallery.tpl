@@ -3,7 +3,7 @@
 
 <p>{L_USER_EXPLAIN}</p>
 
-<form action="{S_PROFILE_ACTION}" method="post">
+<form action="{S_PROFILE_ACTION}" method="post">{CSRF_HIDDEN}
 
 <table border="0" cellpadding="3" cellspacing="1" width="100%" class="forumline">
 	<tr> 

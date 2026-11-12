@@ -209,6 +209,9 @@ if ($post_id)
 //
 // Is user watching this thread?
 //
+if (isset($HTTP_GET_VARS['watch']) || isset($HTTP_GET_VARS['unwatch'])) {
+	phpbb_csrf_require_post();
+}
 if( $userdata['session_logged_in'] )
 {
 	$can_watch_topic = TRUE;

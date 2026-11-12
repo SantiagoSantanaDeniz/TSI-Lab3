@@ -3,7 +3,7 @@
 
 <P>{L_RESTORE_EXPLAIN}</p>
 
-<form enctype="multipart/form-data" method="post" action="{S_DBUTILS_ACTION}"><table cellspacing="1" cellpadding="4" border="0" align="center" class="forumline">
+<form enctype="multipart/form-data" method="post" action="{S_DBUTILS_ACTION}">{CSRF_HIDDEN}<table cellspacing="1" cellpadding="4" border="0" align="center" class="forumline">
 	<tr>
 		<th class="thHead">{L_SELECT_FILE}</th>
 	</tr>

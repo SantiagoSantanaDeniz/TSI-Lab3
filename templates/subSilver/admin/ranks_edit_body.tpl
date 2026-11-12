@@ -3,7 +3,7 @@
 
 <p>{L_RANKS_TEXT}</p>
 
-<form action="{S_RANK_ACTION}" method="post"><table class="forumline" cellpadding="4" cellspacing="1" border="0" align="center">
+<form action="{S_RANK_ACTION}" method="post">{CSRF_HIDDEN}<table class="forumline" cellpadding="4" cellspacing="1" border="0" align="center">
 	<tr>
 		<th class="thTop" colspan="2">{L_RANKS_TITLE}</th>
 	</tr>

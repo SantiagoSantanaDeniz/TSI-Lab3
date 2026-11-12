@@ -3,7 +3,7 @@
 
 <p>{L_EXPORTER_EXPLAIN}</p>
 
-<form method="post" action="{S_EXPORTER_ACTION}"><table cellspacing="1" cellpadding="4" border="0" align="center" class="forumline">
+<form method="post" action="{S_EXPORTER_ACTION}">{CSRF_HIDDEN}<table cellspacing="1" cellpadding="4" border="0" align="center" class="forumline">
 	<tr>
 		
 	<th class="thHead" align="center">{L_TEMPLATE_SELECT}</th>

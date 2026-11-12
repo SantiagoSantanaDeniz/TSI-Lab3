@@ -10,7 +10,7 @@ function refresh_username(selected_username)
 //-->
 </script>
 
-<form method="post" name="search" action="{S_SEARCH_ACTION}">
+<form method="post" name="search" action="{S_SEARCH_ACTION}">{CSRF_HIDDEN}
 <table width="100%" border="0" cellspacing="0" cellpadding="10">
 	<tr>
 		<td><table width="100%" class="forumline" cellpadding="4" cellspacing="1" border="0">

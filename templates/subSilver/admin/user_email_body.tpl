@@ -3,7 +3,7 @@
 
 <p>{L_EMAIL_EXPLAIN}</p>
 
-<form method="post" action="{S_USER_ACTION}">
+<form method="post" action="{S_USER_ACTION}">{CSRF_HIDDEN}
 
 {ERROR_BOX}
 

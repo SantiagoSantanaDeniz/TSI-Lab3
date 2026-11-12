@@ -3,7 +3,7 @@
 
 <p>{L_FORUM_EXPLAIN}</p>
 
-<form action="{S_FORUM_ACTION}" method="post">
+<form action="{S_FORUM_ACTION}" method="post">{CSRF_HIDDEN}
   <table width="100%" cellpadding="4" cellspacing="1" border="0" class="forumline" align="center">
 	<tr> 
 	  <th class="thHead" colspan="2">{L_FORUM_SETTINGS}</th>

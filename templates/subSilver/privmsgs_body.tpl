@@ -56,7 +56,7 @@
 
 <br clear="all" />
 
-<form method="post" name="privmsg_list" action="{S_PRIVMSGS_ACTION}">
+<form method="post" name="privmsg_list" action="{S_PRIVMSGS_ACTION}">{CSRF_HIDDEN}
   <table width="100%" cellspacing="2" cellpadding="2" border="0" align="center">
 	<tr> 
 	  <td align="left" valign="middle">{POST_PM_IMG}</td>

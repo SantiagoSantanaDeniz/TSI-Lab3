@@ -137,6 +137,7 @@ if( isset($HTTP_GET_VARS['import_pack']) || isset($HTTP_POST_VARS['import_pack']
 
 	if ( !empty($smile_pak) )
 	{
+		phpbb_csrf_require_post();
 		//
 		// The user has already selected a smile_pak file.. Import it.
 		//
@@ -439,6 +440,7 @@ else if ( $mode != "" )
 			break;
 
 		case "save":
+			phpbb_csrf_require_post();
 			//
 			// Admin has submitted changes while editing a smiley.
 			//
@@ -490,6 +492,7 @@ else if ( $mode != "" )
 			break;
 
 		case "savenew":
+			phpbb_csrf_require_post();
 			//
 			// Admin has submitted changes while adding a new smiley.
 			//

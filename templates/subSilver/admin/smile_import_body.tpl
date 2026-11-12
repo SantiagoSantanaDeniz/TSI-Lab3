@@ -3,7 +3,7 @@
 
 <p>{L_SMILEY_EXPLAIN}</p>
 
-<form method="post" action="{S_SMILEY_ACTION}"><table class="forumline" cellspacing="1" cellpadding="4" border="0" align="center">
+<form method="post" action="{S_SMILEY_ACTION}">{CSRF_HIDDEN}<table class="forumline" cellspacing="1" cellpadding="4" border="0" align="center">
 	<tr>
 		<th class="thHead" colspan="2">{L_SMILEY_IMPORT}</th>
 	</tr>

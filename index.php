@@ -53,6 +53,7 @@ else
 //
 if( $mark_read == 'forums' )
 {
+	phpbb_csrf_require_post();
 	if( $userdata['session_logged_in'] )
 	{
 		/* Inicio arreglo vulnerabilidad SES-04, ID: 18, CWE-1004 */

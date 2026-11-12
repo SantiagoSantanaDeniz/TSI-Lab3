@@ -61,7 +61,7 @@
 	<!-- END postrow -->
 	<tr align="center"> 
 		<td class="catBottom" colspan="2" height="28"><table cellspacing="0" cellpadding="0" border="0">
-			<tr><form method="post" action="{S_POST_DAYS_ACTION}">
+			<tr><form method="post" action="{S_POST_DAYS_ACTION}">{CSRF_HIDDEN}
 				<td align="center"><span class="gensmall">{L_DISPLAY_POSTS}: {S_SELECT_POST_DAYS}&nbsp;{S_SELECT_POST_ORDER}&nbsp;<input type="submit" value="{L_GO}" class="liteoption" name="submit" /></span></td>
 			</form></tr>
 		</table></td>

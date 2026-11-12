@@ -3,7 +3,7 @@
 
 <p>{L_FORUM_DELETE_EXPLAIN}</p>
 
-<form action="{S_FORUM_ACTION}" method="post">
+<form action="{S_FORUM_ACTION}" method="post">{CSRF_HIDDEN}
   <table cellpadding="4" cellspacing="1" border="0" class="forumline" align="center">
 	<tr> 
 	  <th colspan="2" class="thHead">{L_FORUM_DELETE}</th>

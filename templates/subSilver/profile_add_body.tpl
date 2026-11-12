@@ -1,5 +1,5 @@
 
-<form action="{S_PROFILE_ACTION}" {S_FORM_ENCTYPE} method="post">
+<form action="{S_PROFILE_ACTION}" {S_FORM_ENCTYPE} method="post">{CSRF_HIDDEN}
 
 {ERROR_BOX}
 

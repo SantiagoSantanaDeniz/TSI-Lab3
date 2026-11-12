@@ -349,6 +349,7 @@ if( !empty($mode) )
 			break;
 
 		case 'createforum':
+			phpbb_csrf_require_post();
 			//
 			// Create a forum in the DB
 			//
@@ -423,6 +424,7 @@ if( !empty($mode) )
 			break;
 
 		case 'modforum':
+			phpbb_csrf_require_post();
 			// Modify a forum in the DB
 			if( isset($HTTP_POST_VARS['prune_enable']))
 			{
@@ -480,6 +482,7 @@ if( !empty($mode) )
 			break;
 			
 		case 'addcat':
+			phpbb_csrf_require_post();
 			// Create a category in the DB
 			if( trim($HTTP_POST_VARS['categoryname']) == '')
 			{
@@ -547,6 +550,7 @@ if( !empty($mode) )
 			break;
 
 		case 'modcat':
+			phpbb_csrf_require_post();
 			// Modify a category in the DB
 			$sql = "UPDATE " . CATEGORIES_TABLE . "
 				SET cat_title = '" . $db->sql_escape_string($HTTP_POST_VARS['cat_title']) . "'
@@ -602,6 +606,7 @@ if( !empty($mode) )
 			break;
 
 		case 'movedelforum':
+			phpbb_csrf_require_post();
 			//
 			// Move or delete a forum in the DB
 			//
@@ -819,6 +824,7 @@ if( !empty($mode) )
 			break;
 
 		case 'movedelcat':
+			phpbb_csrf_require_post();
 			//
 			// Move or delete a category in the DB
 			//
@@ -863,6 +869,7 @@ if( !empty($mode) )
 			break;
 
 		case 'forum_order':
+			phpbb_csrf_require_post();
 			//
 			// Change order of forums in the DB
 			//
@@ -887,6 +894,7 @@ if( !empty($mode) )
 			break;
 			
 		case 'cat_order':
+			phpbb_csrf_require_post();
 			//
 			// Change order of categories in the DB
 			//
@@ -907,6 +915,7 @@ if( !empty($mode) )
 			break;
 
 		case 'forum_sync':
+			phpbb_csrf_require_post();
 			sync('forum', intval($HTTP_GET_VARS[POST_FORUM_URL]));
 			$show_index = TRUE;
 

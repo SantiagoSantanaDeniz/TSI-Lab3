@@ -5,7 +5,7 @@
 
 <h2>{L_FORUM}: {FORUM_NAME}</h2>
 
-<form method="post"	action="{S_FORUMPRUNE_ACTION}">
+<form method="post"	action="{S_FORUMPRUNE_ACTION}">{CSRF_HIDDEN}
   <table cellspacing="1" cellpadding="4" border="0" align="center" class="forumline">
 	<tr> 
 	  <th class="thHead">{L_FORUM_PRUNE}</th>

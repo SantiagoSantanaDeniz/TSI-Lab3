@@ -47,6 +47,7 @@ if ( $row = $db->sql_fetchrow($result) )
 	}
 	else if ((trim($row['user_actkey']) == trim($HTTP_GET_VARS['act_key'])) && (trim($row['user_actkey']) != ''))
 	{
+		phpbb_csrf_require_post();
 		if (intval($board_config['require_activation']) == USER_ACTIVATION_ADMIN && $row['user_newpasswd'] == '')
 		{
 			if (!$userdata['session_logged_in'])

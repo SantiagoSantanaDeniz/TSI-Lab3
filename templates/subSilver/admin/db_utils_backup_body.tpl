@@ -3,7 +3,7 @@
 
 <P>{L_BACKUP_EXPLAIN}</p>
 
-<form method="post" action="{S_DBUTILS_ACTION}"><table cellspacing="1" cellpadding="4" border="0" align="center" class="forumline">
+<form method="post" action="{S_DBUTILS_ACTION}">{CSRF_HIDDEN}<table cellspacing="1" cellpadding="4" border="0" align="center" class="forumline">
 	<tr>
 		<th colspan="2" class="thHead">{L_BACKUP_OPTIONS}</th>
 	</tr>

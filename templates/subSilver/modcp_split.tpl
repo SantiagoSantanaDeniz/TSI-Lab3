@@ -1,5 +1,5 @@
 
-<form method="post" action="{S_SPLIT_ACTION}">
+<form method="post" action="{S_SPLIT_ACTION}">{CSRF_HIDDEN}
   <table width="100%" cellspacing="2" cellpadding="2" border="0" align="center">
 	<tr> 
 	  <td align="left" class="nav"><a href="{U_INDEX}" class="nav">{L_INDEX}</a><span class="nav"> 
